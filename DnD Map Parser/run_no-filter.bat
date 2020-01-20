@@ -1,2 +1,2 @@
-java DnDMapParser _ 0
+java mapParser.DndMapParser _ 0
 pause

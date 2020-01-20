@@ -1,0 +1,2 @@
+java mapParser.BlackSpaceReducer
+pause

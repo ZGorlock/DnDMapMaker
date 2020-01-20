@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/DnD Map Parser.iml" filepath="$PROJECT_DIR$/DnD Map Parser.iml" />
+      <module fileurl="file://$PROJECT_DIR$/DndMapMaker.iml" filepath="$PROJECT_DIR$/DndMapMaker.iml" />
     </modules>
   </component>
 </project>

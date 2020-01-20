@@ -1,2 +1,4 @@
-javac DnDMapParser.java
+cd mapParser
+javac DndMapParser.java
+javac BlackSpaceReducer.java
 pause
