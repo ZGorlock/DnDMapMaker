@@ -1,14 +1,22 @@
-1.  Generate a map using: https://donjon.bin.sh/adnd/dungeon/
+1.  If you do not have the Java JDK installed, download and install it from here: https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+
+2.  Generate a map using: https://donjon.bin.sh/adnd/dungeon/
 
     a)  Save the Player's Map and Print Map.
     
     b)  Copy the original map images to the program directory.
+    
+    Alternatively you could use a map created using DnD Map Maker 2D.
 
-2.  Execute run.bat to parse the image and create map tiles in the output directory.
+3.  Execute compile.bat to compile the program.
+
+4.  If you want to reduce the black space in the map for printing purposes, execute reduceBlackSpace.bat.
+
+5.  Execute run.bat to parse the image and create map tiles in the output directory.
+
     Alternatively, you can execute run_no-filter.bat to parse the map without filtering for empty map tiles.
-    If you want to reduce the black space in the images for printing purposes, execute reduceBlackSpace.bat before executing run.bat.
 
-3.  Print the Player Map:
+6.  Print the Player Map:
 
     a)  Move to the output/<name>/map-Player output directory and open the first image with IfranView, if you do not have this program you can download it from: http://www.irfanview.com/
     
@@ -24,7 +32,7 @@
 
     g)  Print.
 
-4.  Print the DM Map:
+7.  Print the DM Map:
    
     a)  Move to the output/<name>map-DM output directory and open the DM map in IfranView.
     

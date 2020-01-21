@@ -2,31 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a83989ef-e01a-4c7e-b470-d8d921163273" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/border.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/doorHorizontal.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/doorVertical.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/doorwayHorizontal.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/doorwayVertical.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/downStairsDown.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/downStairsLeft.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/downStairsRight.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/downStairsUp.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/gateHorizontal.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/gateVertical.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/lockedGateHorizontal.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/lockedGateVertical.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/space.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/trappedGateHorizontal.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/trappedGateVertical.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/upStairsDown.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/upStairsLeft.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/upStairsRight.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/mapMaker2D/upStairsUp.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/mapMaker2D/DndMapMaker2D.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mapMaker2D/Piece.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DnD Map Parser/README.txt" beforeDir="false" afterPath="$PROJECT_DIR$/DnD Map Parser/README.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resource/mapMaker2D/lockedGateHorizontal.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resource/mapMaker2D/lockedGateVertical.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resource/mapMaker2D/trappedGateHorizontal.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resource/mapMaker2D/trappedGateVertical.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mapMaker2D/DndMapMaker2D.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mapMaker2D/DndMapMaker2D.java" afterDir="false" />
     </list>
-    <ignored path="$PROJECT_DIR$/out/" />
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -40,40 +24,6 @@
   </component>
   <component name="FavoritesManager">
     <favorites_list name="DnD Map Parser" />
-  </component>
-  <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/mapParser/DndMapParser.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="468">
-              <caret line="96" column="175" selection-start-line="95" selection-start-column="143" selection-end-line="96" selection-end-column="175" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/mapMaker2D/DndMapMaker2D.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="11" column="8" selection-start-line="11" selection-start-column="8" selection-end-line="11" selection-end-column="8" />
-              <folding>
-                <element signature="e#0#144#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/mapParser/BlackSpaceReducer.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="496">
-              <caret line="123" column="35" selection-start-line="122" selection-start-column="12" selection-end-line="123" selection-end-column="35" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -92,18 +42,6 @@
     <option name="ROOT_SYNC" value="DONT_SYNC" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="IdeDocumentHistory">
-    <option name="CHANGED_PATHS">
-      <list>
-        <option value="$PROJECT_DIR$/src/MapParser/BlackSpaceReducer.java" />
-        <option value="$PROJECT_DIR$/src/mapParser/DnDMapParser.java" />
-        <option value="$PROJECT_DIR$/DnD Map Parser/README.txt" />
-        <option value="$PROJECT_DIR$/src/mapParser/BlackSpaceReducer.java" />
-        <option value="$PROJECT_DIR$/src/mapParser/DndMapParser.java" />
-        <option value="$PROJECT_DIR$/src/mapMaker2D/DndMapMaker2D.java" />
-      </list>
-    </option>
-  </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-8" />
     <option name="y" value="-8" />
@@ -111,50 +49,13 @@
     <option name="height" value="744" />
   </component>
   <component name="ProjectId" id="1V2NTXFnxWdOwfmls0z6cybU2EH" />
-  <component name="ProjectView">
-    <navigator proportions="" version="1">
-      <foldersAlwaysOnTop value="true" />
-    </navigator>
-    <panes>
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="DndMapMaker" type="b2602c69:ProjectViewProjectNode" />
-              <item name="DndMapMaker" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DndMapMaker" type="b2602c69:ProjectViewProjectNode" />
-              <item name="DndMapMaker" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DndMapMaker" type="b2602c69:ProjectViewProjectNode" />
-              <item name="DndMapMaker" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="mapMaker2D" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DndMapMaker" type="b2602c69:ProjectViewProjectNode" />
-              <item name="DndMapMaker" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="mapParser" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-    </panes>
-  </component>
   <component name="ProjectViewState">
     <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/graphy/objects/base/simple" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -162,22 +63,20 @@
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\zachary.gill\Coding\DndMapMaker" />
-      <recent name="C:\Users\zachary.gill\Coding\DndMapMaker\DnD Map Parser" />
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="graphy.objects.base.polygon" />
+      <recent name="graphy.objects.polyhedron.irregular" />
+      <recent name="graphy.objects.base" />
+      <recent name="graphy.math.matrix" />
+      <recent name="graphy.objects.system" />
     </key>
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\Coding\JAVA\DnD Map Maker\src\graphy\objects\base\simple" />
+      <recent name="E:\Coding\JAVA\DnD Map Maker\src\graphy\utility" />
+      <recent name="E:\Coding\JAVA\DnD Map Maker\src\graphy\math\matrix" />
+      <recent name="E:\Coding\JAVA\DnD Map Maker\src\graphy\objects\base" />
+      <recent name="E:\Coding\JAVA\DnD Map Maker\src\graphy\main" />
+    </key>
   </component>
   <component name="RunManager" selected="Application.DndMapMaker2D">
     <configuration default="true" type="Applet">
@@ -284,38 +183,6 @@
     </task>
     <servers />
   </component>
-  <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
-    <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15682063" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info id="Image Layers" order="2" />
-      <window_info id="Designer" order="3" />
-      <window_info id="UI Designer" order="4" />
-      <window_info id="Capture Tool" order="5" />
-      <window_info id="Favorites" order="6" side_tool="true" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32949308" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.16935484" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.24539171" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info anchor="bottom" id="Event Log" order="8" side_tool="true" />
-      <window_info anchor="bottom" id="Version Control" order="9" weight="0.32949308" />
-      <window_info anchor="bottom" id="Messages" order="10" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="Palette" order="3" />
-      <window_info anchor="right" id="Maven" order="4" />
-      <window_info anchor="right" id="Theme Preview" order="5" />
-      <window_info anchor="right" id="Capture Analysis" order="6" />
-      <window_info anchor="right" id="Palette&#9;" order="7" />
-    </layout>
-  </component>
   <component name="Vcs.Log.UiProperties">
     <option name="RECENTLY_FILTERED_USER_GROUPS">
       <collection />
@@ -341,97 +208,6 @@
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
     </expressions>
-  </component>
-  <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/MapParser.java" />
-    <entry file="file://$PROJECT_DIR$/out/mapParser/DndMapParser.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#7868#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DnD Map Parser/DndMapParser.class" />
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_181/src.zip!/java/awt/image/ComponentColorModel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="174">
-          <caret line="896" selection-start-line="896" selection-end-line="896" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/a.png">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DnD Map Parser/run_no-filter.bat">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DnD Map Parser/run.bat">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DnD Map Parser/compile.bat">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="12" selection-start-column="12" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DnD Map Parser/reduceBlackSpace.bat">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DnD Map Parser/README.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="15" column="4" selection-start-line="15" selection-start-column="4" selection-end-line="15" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test.jpg">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/uiDesigner.xml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/modules.xml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DndMapMaker.iml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resource/mapMaker2D/a.png">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/mapParser/BlackSpaceReducer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="496">
-          <caret line="123" column="35" selection-start-line="122" selection-start-column="12" selection-end-line="123" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/mapParser/DndMapParser.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="468">
-          <caret line="96" column="175" selection-start-line="95" selection-start-column="143" selection-end-line="96" selection-end-column="175" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/mapMaker2D/DndMapMaker2D.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="11" column="8" selection-start-line="11" selection-start-column="8" selection-end-line="11" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#144#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
   </component>
   <component name="masterDetails">
     <states>
