@@ -6,32 +6,88 @@
 
 package mapParser;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.imageio.ImageIO;
 
+/**
+ * Parses a DnD Map to playable size.
+ */
 public class DndMapParser {
     
+    //Constants
+    
+    /**
+     * The size of the tiles.
+     */
     private static final int TILE_SIZE = 50;
+    
+    /**
+     * The width in tiles per page.
+     */
     private static final int WIDTH_PER_PAGE = 8;
+    
+    /**
+     * The height in tiles per page.
+     */
     private static final int HEIGHT_PER_PAGE = 10;
     
     
+    //Static Fields
+    
+    /**
+     * The map file to work with.
+     */
     private static File file = null;
+    
+    /**
+     * The file type of the map file.
+     */
     private static String fileType = "";
+    
+    /**
+     * A flag indicating whether or not the filter the map tiles.
+     */
     private static boolean filter = true;
+    
+    /**
+     * The map image.
+     */
     private static BufferedImage image = null;
+    
+    /**
+     * An array of map tiles derived from the map image.
+     */
     private static List<List<BufferedImage>> tiles = new ArrayList<>();
     
+    /**
+     * A flag indicating whether or not the program is working on the DM map.
+     */
     private static boolean dmFlag = false;
+    
+    /**
+     * The DM map file to work with.
+     */
     private static File dmFile = null;
+    
+    /**
+     * The DM map image.
+     */
     private static BufferedImage dmImage = null;
     
     
+    //Main Method
+    
+    /**
+     * The main method of the DnD Map Parser.
+     *
+     * @param args The arguments to the main mehotd.
+     */
     public static void main(String[] args) {
         String filePath;
         String dmFilePath;
@@ -64,6 +120,13 @@ public class DndMapParser {
     }
     
     
+    //Static Methods
+    
+    /**
+     * Reads the map.
+     *
+     * @param filePath The path to the map file.
+     */
     private static void readMap(String filePath) {
         try {
             file = new File(filePath);
@@ -80,6 +143,9 @@ public class DndMapParser {
         }
     }
     
+    /**
+     * Parses the map.
+     */
     private static void parseMap() {
         int column = 0;
         
@@ -143,6 +209,9 @@ public class DndMapParser {
         }
     }
     
+    /**
+     * Produces the map pieces from the parsed map.
+     */
     private static void writeMap() {
         try {
             //Output Directory
@@ -201,6 +270,11 @@ public class DndMapParser {
         }
     }
     
+    /**
+     * Gets the map file to work with from the working directory.
+     *
+     * @return The path to the map file, or an empty string if no map file could be found.
+     */
     private static String getImage() {
         File classpath = new File(".");
         File[] files = classpath.listFiles();
@@ -219,6 +293,12 @@ public class DndMapParser {
         return "";
     }
     
+    /**
+     * Gets the DM map file to work with from the working directory.
+     *
+     * @param mapImage The path to the map file.
+     * @return The path the the DM map file, or an empty string if no DM map file could be found.
+     */
     private static String getDMImage(String mapImage) {
         String dmImage = mapImage.replaceAll("\\(player\\)", "(print)");
         if (new File(dmImage).exists()) {
@@ -227,6 +307,12 @@ public class DndMapParser {
         return "";
     }
     
+    /**
+     * Filters the tile for empty space.
+     *
+     * @param tile The tile/
+     * @return Whether or not the file contains meaningful information.
+     */
     private static boolean filterTile(BufferedImage tile) {
         if (!filter) {
             return true;
