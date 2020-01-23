@@ -51,7 +51,7 @@ public class DndMapMaker2D extends Scene {
     /**
      * The size of the map.
      */
-    public static final Vector MAP_DIM = new Vector(250, 250);
+    public static final Vector MAP_DIM = new Vector(10, 10);
     
     /**
      * The render size of each square of the map.
@@ -307,32 +307,51 @@ public class DndMapMaker2D extends Scene {
                                     
                                     if (((x + selectedPiece.sizeX) <= mapSquares.length) &&
                                             ((y + selectedPiece.sizeY) <= mapSquares[0].length)) {
-                                        if (map[x][y] != null) {
-                                            Piece piece = (map[x][y].parentPiece == null) ? map[x][y] : map[x][y].parentPiece;
-                                            int xOffset = 0;
-                                            int yOffset = 0;
-                                            if (map[x][y].parentPiece != null) {
-                                                String[] nameParts = map[x][y].name.split(":");
-                                                if (nameParts.length == 3) {
-                                                    xOffset = -Integer.parseInt(nameParts[1]);
-                                                    yOffset = -Integer.parseInt(nameParts[2]);
+                                        
+                                        boolean overlap = false;
+                                        for (int i = x; i < (x + selectedPiece.sizeX); i++) {
+                                            for (int j = y; j < (y + selectedPiece.sizeY); j++) {
+                                                if (i == x && j == y) {
+                                                    continue;
+                                                }
+                                                if (map[i][j] != null) {
+                                                    overlap = true;
+                                                    break;
                                                 }
                                             }
-                                            
-                                            for (int i = 0; i < piece.sizeX; i++) {
-                                                for (int j = 0; j < piece.sizeY; j++) {
-                                                    map[x + xOffset + i][y + yOffset + j] = null;
-                                                    mapSquares[x + xOffset + i][y + yOffset + j].setImage(null);
-                                                }
+                                            if (overlap) {
+                                                break;
                                             }
                                         }
                                         
-                                        if (selectedPiece.name.equalsIgnoreCase("Nothing")) {
-                                            imageSquare.setImage(null);
-                                        } else {
-                                            for (int i = 0; i < selectedPiece.sizeX; i++) {
-                                                for (int j = 0; j < selectedPiece.sizeY; j++) {
-                                                    map[x + i][y + j] = selectedPiece.subPieces[i][j];
+                                        if (!overlap) {
+                                            if (map[x][y] != null) {
+                                                Piece piece = (map[x][y].parentPiece == null) ? map[x][y] : map[x][y].parentPiece;
+                                                int xOffset = 0;
+                                                int yOffset = 0;
+                                                if (map[x][y].parentPiece != null) {
+                                                    String[] nameParts = map[x][y].name.split(":");
+                                                    if (nameParts.length == 3) {
+                                                        xOffset = -Integer.parseInt(nameParts[1]);
+                                                        yOffset = -Integer.parseInt(nameParts[2]);
+                                                    }
+                                                }
+                                                
+                                                for (int i = 0; i < piece.sizeX; i++) {
+                                                    for (int j = 0; j < piece.sizeY; j++) {
+                                                        map[x + xOffset + i][y + yOffset + j] = null;
+                                                        mapSquares[x + xOffset + i][y + yOffset + j].setImage(null);
+                                                    }
+                                                }
+                                            }
+                                            
+                                            if (selectedPiece.name.equalsIgnoreCase("Nothing")) {
+                                                imageSquare.setImage(null);
+                                            } else {
+                                                for (int i = 0; i < selectedPiece.sizeX; i++) {
+                                                    for (int j = 0; j < selectedPiece.sizeY; j++) {
+                                                        map[x + i][y + j] = selectedPiece.subPieces[i][j];
+                                                    }
                                                 }
                                             }
                                         }
