@@ -425,7 +425,7 @@ public class DndMapMaker2D extends Scene {
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void saveState(String mapName) {
-        File saveDirectory = new File("saves");
+        File saveDirectory = new File("SAVE");
         if (!saveDirectory.exists()) {
             saveDirectory.mkdir();
         }
@@ -455,7 +455,7 @@ public class DndMapMaker2D extends Scene {
     private void loadState(String mapName) {
         saveState(UUID.randomUUID().toString());
         
-        File saveDirectory = new File("saves");
+        File saveDirectory = new File("SAVE");
         if (!saveDirectory.exists()) {
             saveDirectory.mkdir();
         }
@@ -502,7 +502,7 @@ public class DndMapMaker2D extends Scene {
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void exportState(String mapName) {
-        File outputDirectory = new File("output");
+        File outputDirectory = new File("OUTPUT");
         if (!outputDirectory.exists()) {
             outputDirectory.mkdir();
         }

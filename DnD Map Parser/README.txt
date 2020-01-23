@@ -12,13 +12,13 @@
 
 4.  If you want to reduce the black space in the map for printing purposes, execute reduceBlackSpace.bat.
 
-5.  Execute run.bat to parse the image and create map tiles in the output directory.
+5.  Execute run.bat to parse the image and create map tiles in the OUTPUT/ directory.
 
     Alternatively, you can execute run_no-filter.bat to parse the map without filtering for empty map tiles.
 
 6.  Print the Player Map:
 
-    a)  Move to the output/<name>/map-Player output directory and open the first image with IfranView, if you do not have this program you can download it from: http://www.irfanview.com/
+    a)  Move to the OUTPUT/<name>/map-Player directory and open the first image with IfranView, if you do not have this program you can download it from: http://www.irfanview.com/
     
     b)  Now that the first image is opened in IfranView, press 'T'. This will open the Thumbnail view.
     
@@ -34,7 +34,7 @@
 
 7.  Print the DM Map:
    
-    a)  Move to the output/<name>map-DM output directory and open the DM map in IfranView.
+    a)  Move to the OUTPUT/<name>map-DM directory and open the DM map in IfranView.
     
     b)  Choose an appropriate printer and set the Print Size to Best fit to page (aspect ratio)
     

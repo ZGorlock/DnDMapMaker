@@ -215,7 +215,7 @@ public class DndMapParser {
     private static void writeMap() {
         try {
             //Output Directory
-            File outputDir = new File("output");
+            File outputDir = new File("OUTPUT");
             if (!outputDir.exists()) {
                 if (!outputDir.mkdir()) {
                     System.out.println("Output directory could not be created!");

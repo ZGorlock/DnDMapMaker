@@ -12,6 +12,6 @@
 
     To reload your saved work press the Load button and enter the same map name.
 
-    Once your map is done press the Export button and choose a map name, this will produce DM and Player Maps in the output directory.
+    Once your map is done press the Export button and choose a map name, this will produce DM and Player Maps in the OUTPUT/ directory.
 
 5.  Copy the DM and Player map images that were created to the DnD Map Parser directory and follow the instructions there.
