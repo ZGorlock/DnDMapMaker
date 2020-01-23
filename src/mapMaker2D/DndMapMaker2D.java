@@ -51,7 +51,7 @@ public class DndMapMaker2D extends Scene {
     /**
      * The size of the map.
      */
-    public static final Vector MAP_DIM = new Vector(10, 10);
+    public static final Vector MAP_DIM = new Vector(250, 250);
     
     /**
      * The render size of each square of the map.
@@ -432,10 +432,14 @@ public class DndMapMaker2D extends Scene {
         File save = new File(saveDirectory, mapName + ".save");
         
         StringBuilder state = new StringBuilder();
+        state.append(Environment.origin.getX()).append(":").append(Environment.origin.getY()).append(":").append(Environment.origin.getZ()).append(",");
+        Vector camera = Camera.getActiveCameraView().getLocation();
+        state.append(camera.getX()).append(":").append(camera.getY()).append(":").append(camera.getZ());
+        
         for (int x = 0; x < map.length; x++) {
             for (int y = 0; y < map[0].length; y++) {
                 if (map[x][y] != null && pieces.containsKey(map[x][y].name)) {
-                    state.append(state.length() > 0 ? "," : "").append(x).append(":").append(y).append(":").append(map[x][y].name);
+                    state.append(",").append(x).append(":").append(y).append(":").append(map[x][y].name);
                 }
             }
         }
@@ -475,13 +479,25 @@ public class DndMapMaker2D extends Scene {
         }
         String[] mapPieces = state.split(",");
         
+        String[] origin = mapPieces[0].split(":");
+        double originX = Double.parseDouble(origin[0]);
+        double originY = Double.parseDouble(origin[1]);
+        double originZ = Double.parseDouble(origin[2]);
+        Environment.origin = new Vector(originX, originY, originZ);
+        
+        String[] camera = mapPieces[1].split(":");
+        double phi = Double.parseDouble(camera[0]);
+        double theta = Double.parseDouble(camera[1]);
+        double rho = Double.parseDouble(camera[2]);
+        Camera.getActiveCameraView().setLocation(phi, theta, rho);
+        
         for (int x = 0; x < map.length; x++) {
             for (int y = 0; y < map[0].length; y++) {
                 map[x][y] = null;
             }
         }
-        for (String mapPiece : mapPieces) {
-            String[] mapPieceData = mapPiece.split(":");
+        for (int p = 2; p < mapPieces.length; p++) {
+            String[] mapPieceData = mapPieces[p].split(":");
             int x = Integer.parseInt(mapPieceData[0]);
             int y = Integer.parseInt(mapPieceData[1]);
             Piece piece = pieces.get(mapPieceData[2]);
