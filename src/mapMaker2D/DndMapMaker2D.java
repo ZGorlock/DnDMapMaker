@@ -518,6 +518,8 @@ public class DndMapMaker2D extends Scene {
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void exportState(String mapName) {
+        saveState(mapName + "-export");
+        
         File outputDirectory = new File("OUTPUT");
         if (!outputDirectory.exists()) {
             outputDirectory.mkdir();
@@ -552,8 +554,8 @@ public class DndMapMaker2D extends Scene {
             }
         }
         
-        File dmOutput = new File(outputDirectory, mapName + "-dm.png");
-        File playerOutput = new File(outputDirectory, mapName + "-player.png");
+        File dmOutput = new File(outputDirectory, mapName + " (print).png");
+        File playerOutput = new File(outputDirectory, mapName + " (player).png");
         try {
             ImageIO.write(dmMap, "png", dmOutput);
             ImageIO.write(playerMap, "png", playerOutput);

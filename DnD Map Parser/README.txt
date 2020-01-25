@@ -1,5 +1,7 @@
 1.  If you do not have the Java JDK installed, download and install it from here: https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 
+    Add <java installtion directory>/<jdk folder>/bin to the Path system environment variable.
+
 2.  Generate a map using: https://donjon.bin.sh/adnd/dungeon/
 
     a)  Save the Player's Map and Print Map.
