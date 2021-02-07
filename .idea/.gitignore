@@ -1,7 +1,0 @@
-/.idea/libraries
-/.idea/workspace.xml
-**/*.iws
-
-**/bin/
-**/target/
-**/out/
