@@ -52,7 +52,6 @@ public class Matrix3 {
      *
      * @param other The vector.
      * @return The vector result of the multiplication.
-     *
      * @throws ArithmeticException When the vector is not of the proper size.
      */
     public Vector multiply(Vector other) throws ArithmeticException {
@@ -156,7 +155,6 @@ public class Matrix3 {
      *
      * @param solutionVector The solution vector.
      * @return The solution to the system of equations.
-     *
      * @throws ArithmeticException When the solution vector is not of the proper size.
      */
     public Vector solveSystem(Vector solutionVector) throws ArithmeticException {
@@ -171,7 +169,6 @@ public class Matrix3 {
      * Calculates the inverse of the matrix.
      *
      * @return The inverse of the matrix.
-     *
      * @throws ArithmeticException If the matrix cannot be inverted.
      */
     public Matrix3 inverse() throws ArithmeticException {
@@ -187,7 +184,6 @@ public class Matrix3 {
      *
      * @param in The vector to transform.
      * @return The transformed vector.
-     *
      * @throws ArithmeticException When the vector is not of the proper size.
      */
     public Vector transform(Vector in) throws ArithmeticException {
