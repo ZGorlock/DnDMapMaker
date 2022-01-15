@@ -11,6 +11,7 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -38,25 +39,34 @@ public class BlackSpaceReducer {
     /**
      * The main method of the Black Space Reducer.
      *
-     * @param args The aguments to the main method.
+     * @param args The arguments to the main method.
      */
     public static void main(String[] args) {
-        parseImages(getImages());
+        String filePath;
+        
+        if (args.length > 0 && args[0].length() > 1) {
+            filePath = args[0];
+        } else {
+            filePath = "";
+        }
+        
+        parseImages(getImages(filePath));
     }
     
     
     //Static Methods
     
     /**
-     * Gets the images in the working directory.
+     * Gets the image or images.
      *
-     * @return The list of images in the working directory.
+     * @param filePath The path to the image or directory.
+     * @return The list of images.
      */
-    private static List<String> getImages() {
+    private static List<String> getImages(String filePath) {
         List<String> images = new ArrayList<>();
         
-        File classpath = new File(".");
-        File[] files = classpath.listFiles();
+        File path = new File(filePath.isEmpty() ? "." : filePath);
+        File[] files = path.isDirectory() ? path.listFiles() : new File[] {path};
         if (files == null || files.length == 0) {
             System.out.println("No original map image found in directory!");
             return images;
@@ -65,7 +75,7 @@ public class BlackSpaceReducer {
         for (File f : files) {
             String type = f.getName().substring(f.getName().length() - 3);
             if ("jpg".equals(type) || "png".equals(type) || "gif".equals(type)) {
-                images.add(f.getName());
+                images.add(f.getAbsolutePath());
             }
         }
         
@@ -78,6 +88,8 @@ public class BlackSpaceReducer {
      * @param images The list of images to parse.
      */
     private static void parseImages(List<String> images) {
+        backupImages(images);
+        
         for (String image : images) {
             BufferedImage data = readImage(image);
             if (data == null) {
@@ -175,10 +187,41 @@ public class BlackSpaceReducer {
     }
     
     /**
+     * Backs up the original image files.
+     *
+     * @param images The list of images to backup.
+     */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void backupImages(List<String> images) {
+        if (images == null || images.isEmpty()) {
+            return;
+        }
+        
+        try {
+            if (images.size() == 1) {
+                File image = new File(images.get(0));
+                Files.copy(image.toPath(), new File(image.getAbsolutePath().replaceAll("\\.(.*)$", " (original).$1")).toPath());
+            } else {
+                File dir = new File(images.get(0)).getParentFile();
+                File bak = new File(dir.getAbsolutePath() + " (original)");
+                bak.mkdir();
+                File[] files = dir.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        Files.copy(file.toPath(), new File(bak, file.getName()).toPath());
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    /**
      * Saves an image to a file.
      *
      * @param filePath The path to the file to save.
-     * @param data     The image to write the the specified file.
+     * @param data     The image to write the specified file.
      */
     private static void saveImage(String filePath, BufferedImage data) {
         try {

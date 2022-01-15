@@ -46,6 +46,7 @@ import graphy.camera.Camera;
 import graphy.main.Environment;
 import graphy.math.vector.Vector;
 import graphy.objects.base.Scene;
+import mapParser.BlackSpaceReducer;
 import mapParser.DndMapParser;
 
 /**
@@ -693,6 +694,7 @@ public class DndMapMaker2D extends Scene {
         }
         
         DndMapParser.main(new String[] {playerOutput.getAbsolutePath()});
+        BlackSpaceReducer.main(new String[] {new File(exportDirectory, "map-Player").getAbsolutePath()});
     }
     
     
