@@ -7,6 +7,7 @@
 package mapParser;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -86,24 +87,26 @@ public class DndMapParser {
     /**
      * The main method of the DnD Map Parser.
      *
-     * @param args The arguments to the main mehotd.
+     * @param args The arguments to the main method.
      */
     public static void main(String[] args) {
         String filePath;
         String dmFilePath;
+        
         if (args.length > 0 && args[0].length() > 1) {
             filePath = args[0];
-            if (!"jpg".equals(fileType) && !"png".equals(fileType) && !"gif".equals(fileType)) {
-                System.out.println("File type must be .jpg, .png, or .gif!");
-                return;
-            }
         } else {
             filePath = getImage();
-            if (filePath.isEmpty()) {
-                return;
-            }
         }
+        if (filePath.isEmpty()) {
+            return;
+        }
+        
         fileType = filePath.substring(filePath.length() - 3);
+        if (!"jpg".equals(fileType) && !"png".equals(fileType) && !"gif".equals(fileType)) {
+            System.out.println("File type must be .jpg, .png, or .gif!");
+            return;
+        }
         
         if (args.length > 1) {
             if ("0".equals(args[1])) {
@@ -183,27 +186,38 @@ public class DndMapParser {
         }
         
         if (dmFlag) {
+            int dmMapHeight = getDMMapHeight();
             double ratX = (double) dmImage.getWidth() / image.getWidth();
-            double ratY = (double) dmImage.getHeight() / image.getHeight();
+            double ratY = (double) dmMapHeight / image.getHeight();
             int gridColor = new Color(0, 0, 0).getRGB();
             
             for (int i = 0; i < dmImage.getWidth(); i += TILE_SIZE * WIDTH_PER_PAGE * ratX) {
                 for (int w = -1; w <= 1; w++) {
-                    for (int j = 0; j < dmImage.getHeight(); j++) {
+                    for (int j = 0; j < dmMapHeight; j++) {
                         if (i + w >= 0 && i + w < dmImage.getWidth()) {
                             dmImage.setRGB(i + w, j, gridColor);
                         }
                     }
                 }
-                
             }
-            for (int j = 0; j < dmImage.getHeight(); j += TILE_SIZE * HEIGHT_PER_PAGE * ratY) {
+            for (int j = 0; j < dmMapHeight; j += TILE_SIZE * HEIGHT_PER_PAGE * ratY) {
                 for (int w = -1; w <= 1; w++) {
                     for (int i = 0; i < dmImage.getWidth(); i++) {
-                        if (j + w >= 0 && j + w < dmImage.getHeight()) {
+                        if (j + w >= 0 && j + w < dmMapHeight) {
                             dmImage.setRGB(i, j + w, gridColor);
                         }
                     }
+                }
+            }
+            
+            Graphics2D g2 = (Graphics2D) dmImage.getGraphics();
+            g2.setFont(new Font("Consolas", Font.BOLD, 18));
+            g2.setColor(Color.RED);
+            for (int i = 0; i < dmImage.getWidth(); i += TILE_SIZE * WIDTH_PER_PAGE * ratX) {
+                for (int j = 0; j < dmMapHeight; j += TILE_SIZE * HEIGHT_PER_PAGE * ratY) {
+                    int x = (int) (i / (TILE_SIZE * WIDTH_PER_PAGE * ratX));
+                    int y = (int) (j / (TILE_SIZE * HEIGHT_PER_PAGE * ratY));
+                    g2.drawString("(" + x + ", " + y + ")", i + 20, j + 20);
                 }
             }
         }
@@ -297,7 +311,7 @@ public class DndMapParser {
      * Gets the DM map file to work with from the working directory.
      *
      * @param mapImage The path to the map file.
-     * @return The path the the DM map file, or an empty string if no DM map file could be found.
+     * @return The path the DM map file, or an empty string if no DM map file could be found.
      */
     private static String getDMImage(String mapImage) {
         String dmImage = mapImage.replaceAll("\\(player\\)", "(print)");
@@ -308,9 +322,33 @@ public class DndMapParser {
     }
     
     /**
+     * Returns the map height for the DM map image.
+     *
+     * @return The map height for the DM map image.
+     */
+    private static int getDMMapHeight() {
+        final Color breakColor = new Color(32, 32, 32);
+        for (int y = 0; y < dmImage.getHeight(); y++) {
+            if (dmImage.getRGB(0, y) == breakColor.getRGB()) {
+                boolean isBreak = true;
+                for (int x = 1; x < dmImage.getWidth(); x++) {
+                    if (dmImage.getRGB(x, y) != breakColor.getRGB()) {
+                        isBreak = false;
+                        break;
+                    }
+                }
+                if (isBreak) {
+                    return y;
+                }
+            }
+        }
+        return dmImage.getHeight();
+    }
+    
+    /**
      * Filters the tile for empty space.
      *
-     * @param tile The tile/
+     * @param tile The tile.
      * @return Whether or not the file contains meaningful information.
      */
     private static boolean filterTile(BufferedImage tile) {

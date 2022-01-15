@@ -8,10 +8,13 @@ package mapMaker2D;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -19,11 +22,15 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -39,7 +46,7 @@ import graphy.camera.Camera;
 import graphy.main.Environment;
 import graphy.math.vector.Vector;
 import graphy.objects.base.Scene;
-import graphy.objects.complex.ImageSquare;
+import mapParser.DndMapParser;
 
 /**
  * Allows the creation of 2D DnD Maps.
@@ -51,7 +58,7 @@ public class DndMapMaker2D extends Scene {
     /**
      * The size of the map.
      */
-    public static final Vector MAP_DIM = new Vector(250, 250);
+    public static final Vector MAP_DIM = new Vector(100, 100);
     
     /**
      * The render size of each square of the map.
@@ -76,12 +83,22 @@ public class DndMapMaker2D extends Scene {
     /**
      * The layout of the map.
      */
-    private final Piece[][] map = new Piece[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+    private Piece[][] map = new Piece[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
     
     /**
      * The map squares of the map.
      */
-    private final ImageSquare[][] mapSquares = new ImageSquare[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+    private MapSquare[][] mapSquares = new MapSquare[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+    
+    /**
+     * The labels of the map squares.
+     */
+    private String[][] labels = new String[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+    
+    /**
+     * The notes of the map squares.
+     */
+    private String[][] notes = new String[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
     
     /**
      * The selected piece.
@@ -116,7 +133,10 @@ public class DndMapMaker2D extends Scene {
      */
     public DndMapMaker2D(Environment environment) {
         super(environment);
+        DndMapMaker2D.environment = environment;
     }
+    
+    private static Environment environment;
     
     
     //Methods
@@ -128,7 +148,7 @@ public class DndMapMaker2D extends Scene {
     public void calculate() {
         for (int x = 0; x < MAP_DIM.getX(); x++) {
             for (int y = 0; y < MAP_DIM.getY(); y++) {
-                ImageSquare square = new ImageSquare(Color.WHITE, new Vector((x - (MAP_DIM.getX() / 2)) * PIECE_SIZE, (y - (MAP_DIM.getY() / 2)) * PIECE_SIZE, 0), PIECE_SIZE);
+                MapSquare square = new MapSquare(Color.WHITE, new Vector((x - (MAP_DIM.getX() / 2)) * PIECE_SIZE, (y - (MAP_DIM.getY() / 2)) * PIECE_SIZE, 0), PIECE_SIZE);
                 square.addFrame(Color.BLACK);
                 registerComponent(square);
                 mapSquares[x][y] = square;
@@ -215,6 +235,7 @@ public class DndMapMaker2D extends Scene {
         scrollPane.setPreferredSize(scrollPane.getSize());
         scrollPane.setBorder(new TitledBorder("Map Pieces"));
         scrollPane.setLayout(new ScrollPaneLayout());
+        scrollPane.getVerticalScrollBar().setUnitIncrement(32);
         GridBagConstraints subConstraints = new GridBagConstraints();
         subConstraints.insets = new Insets(0, 0, (int) (height * 0.0025), 0);
         sidePane.add(scrollPane, subConstraints);
@@ -289,21 +310,37 @@ public class DndMapMaker2D extends Scene {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                    if (selectedPiece == null) {
+                    boolean ctrl = (e.getModifiers() & ActionEvent.CTRL_MASK) == ActionEvent.CTRL_MASK;
+                    if ((selectedPiece == null) && !ctrl) {
                         return;
                     }
                     
                     boolean hit = false;
                     for (int x = 0; x < mapSquares.length; x++) {
                         for (int y = 0; y < mapSquares[0].length; y++) {
-                            ImageSquare imageSquare = mapSquares[x][y];
-                            if (imageSquare != null && imageSquare.isRendered()) {
-                                List<Vector> prepared = imageSquare.getPrepared();
+                            MapSquare mapSquare = mapSquares[x][y];
+                            if (mapSquare != null && mapSquare.isRendered()) {
+                                List<Vector> prepared = mapSquare.getPrepared();
                                 if (prepared.size() == 4 &&
                                         e.getX() > prepared.get(0).getX() &&
                                         e.getX() < prepared.get(1).getX() &&
                                         e.getY() > prepared.get(0).getY() &&
                                         e.getY() < prepared.get(3).getY()) {
+                                    
+                                    if (ctrl) {
+                                        String label = JOptionPane.showInputDialog("Label:");
+                                        if (label != null) {
+                                            labels[x][y] = label;
+                                            mapSquare.setLabel(label.replaceAll("[:,;]", ""));
+                                            String note = JOptionPane.showInputDialog("Note:");
+                                            if (note != null) {
+                                                notes[x][y] = note;
+                                                mapSquare.setNote(note.replaceAll("[:,;]", ""));
+                                            }
+                                        }
+                                        hit = true;
+                                        break;
+                                    }
                                     
                                     if (((x + selectedPiece.sizeX) <= mapSquares.length) &&
                                             ((y + selectedPiece.sizeY) <= mapSquares[0].length)) {
@@ -346,7 +383,7 @@ public class DndMapMaker2D extends Scene {
                                             }
                                             
                                             if (selectedPiece.name.equalsIgnoreCase("Nothing")) {
-                                                imageSquare.setImage(null);
+                                                mapSquare.setImage(null);
                                             } else {
                                                 for (int i = 0; i < selectedPiece.sizeX; i++) {
                                                     for (int j = 0; j < selectedPiece.sizeY; j++) {
@@ -384,30 +421,53 @@ public class DndMapMaker2D extends Scene {
         });
         
         environment.renderPanel.addMouseMotionListener(new MouseMotionListener() {
+            Timer noteTimer = null;
+            
             @Override
             public void mouseDragged(MouseEvent e) {
             }
             
             @Override
             public void mouseMoved(MouseEvent e) {
+                boolean ctrl = (e.getModifiers() & ActionEvent.CTRL_MASK) == ActionEvent.CTRL_MASK;
+                if (noteTimer != null) {
+                    noteTimer.cancel();
+                }
+                
                 for (int x = 0; x < mapSquares.length; x++) {
                     for (int y = 0; y < mapSquares[0].length; y++) {
-                        ImageSquare imageSquare = mapSquares[x][y];
-                        if (imageSquare != null && imageSquare.isRendered()) {
-                            List<Vector> prepared = imageSquare.getPrepared();
+                        MapSquare mapSquare = mapSquares[x][y];
+                        if (mapSquare != null && mapSquare.isRendered()) {
+                            List<Vector> prepared = mapSquare.getPrepared();
                             if (prepared.size() == 4 &&
                                     e.getX() > prepared.get(0).getX() &&
                                     e.getX() < prepared.get(1).getX() &&
                                     e.getY() > prepared.get(0).getY() &&
                                     e.getY() < prepared.get(3).getY()) {
-                                imageSquare.setColor(Color.GREEN);
+                                
+                                mapSquare.setColor(Color.GREEN);
                                 if (map[x][y] != null) {
-                                    imageSquare.setImage(map[x][y].highlightedIcon);
+                                    mapSquare.setImage(map[x][y].highlightedIcon);
                                 }
+                                
+                                if (ctrl && (mapSquare.note != null) && !mapSquare.note.isEmpty()) {
+                                    noteTimer = new Timer();
+                                    noteTimer.scheduleAtFixedRate(new TimerTask() {
+                                        @Override
+                                        public void run() {
+                                            final Graphics2D g2 = (Graphics2D) environment.renderPanel.getGraphics();
+                                            Color saveColor = g2.getColor();
+                                            g2.setColor(Color.BLACK);
+                                            g2.drawString(mapSquare.note, e.getX(), e.getY());
+                                            g2.setColor(saveColor);
+                                        }
+                                    }, 0, 5);
+                                }
+                                
                             } else {
-                                imageSquare.setColor(Color.WHITE);
+                                mapSquare.setColor(Color.WHITE);
                                 if (map[x][y] != null) {
-                                    imageSquare.setImage(map[x][y].icon);
+                                    mapSquare.setImage(map[x][y].icon);
                                 }
                             }
                         }
@@ -438,8 +498,14 @@ public class DndMapMaker2D extends Scene {
         
         for (int x = 0; x < map.length; x++) {
             for (int y = 0; y < map[0].length; y++) {
-                if (map[x][y] != null && pieces.containsKey(map[x][y].name)) {
-                    state.append(",").append(x).append(":").append(y).append(":").append(map[x][y].name);
+                boolean hasPiece = (map[x][y] != null && pieces.containsKey(map[x][y].name));
+                boolean hasLabel = labels[x][y] != null;
+                boolean hasNotes = notes[x][y] != null;
+                if (hasPiece || hasLabel || hasNotes) {
+                    state.append(',').append(x).append(':').append(y).append(':')
+                            .append(hasPiece ? map[x][y].name : "").append(':')
+                            .append(hasLabel ? labels[x][y] : "").append(':')
+                            .append(hasNotes ? notes[x][y] : "");
                 }
             }
         }
@@ -477,6 +543,13 @@ public class DndMapMaker2D extends Scene {
             JOptionPane.showMessageDialog(null, "Error: " + mapName + " could not be loaded!");
             return;
         }
+        
+        map = new Piece[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+        mapSquares = new MapSquare[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+        labels = new String[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+        notes = new String[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+        calculate();
+        
         String[] mapPieces = state.split(",");
         
         String[] origin = mapPieces[0].split(":");
@@ -497,16 +570,28 @@ public class DndMapMaker2D extends Scene {
             }
         }
         for (int p = 2; p < mapPieces.length; p++) {
-            String[] mapPieceData = mapPieces[p].split(":");
+            String[] mapPieceData = mapPieces[p].split(":", -1);
             int x = Integer.parseInt(mapPieceData[0]);
             int y = Integer.parseInt(mapPieceData[1]);
-            Piece piece = pieces.get(mapPieceData[2]);
+            Piece piece = mapPieceData[2].isEmpty() ? null : pieces.get(mapPieceData[2]);
+            String label = ((mapPieceData.length < 4) || mapPieceData[3].isEmpty()) ? null : mapPieceData[3];
+            String note = ((mapPieceData.length < 5) || mapPieceData[4].isEmpty()) ? null : mapPieceData[4];
             
-            for (int i = 0; i < piece.sizeX; i++) {
-                for (int j = 0; j < piece.sizeY; j++) {
-                    map[x + i][y + j] = piece.subPieces[i][j];
-                    mapSquares[x + i][y + j].setImage(piece.subPieces[i][j].icon);
+            if (piece != null) {
+                for (int i = 0; i < piece.sizeX; i++) {
+                    for (int j = 0; j < piece.sizeY; j++) {
+                        map[x + i][y + j] = piece.subPieces[i][j];
+                        mapSquares[x + i][y + j].setImage(piece.subPieces[i][j].icon);
+                    }
                 }
+            }
+            if (label != null) {
+                labels[x][y] = label;
+                mapSquares[x][y].setLabel(label);
+            }
+            if (note != null) {
+                notes[x][y] = note;
+                mapSquares[x][y].setNote(note);
             }
         }
     }
@@ -521,8 +606,12 @@ public class DndMapMaker2D extends Scene {
         saveState(mapName + "-export");
         
         File outputDirectory = new File("OUTPUT");
+        File exportDirectory = new File(outputDirectory, mapName);
         if (!outputDirectory.exists()) {
             outputDirectory.mkdir();
+        }
+        if (!exportDirectory.exists()) {
+            exportDirectory.mkdir();
         }
         
         int minX = Integer.MAX_VALUE;
@@ -540,28 +629,70 @@ public class DndMapMaker2D extends Scene {
             }
         }
         
-        BufferedImage dmMap = new BufferedImage((maxX - minX + 1) * Piece.PIECE_SIZE, (maxY - minY + 1) * Piece.PIECE_SIZE, BufferedImage.TYPE_INT_RGB);
-        BufferedImage playerMap = new BufferedImage((maxX - minX + 1) * Piece.PIECE_SIZE, (maxY - minY + 1) * Piece.PIECE_SIZE, BufferedImage.TYPE_INT_RGB);
+        Map<String, String> poi = new LinkedHashMap<>();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                if ((labels[x][y] != null) && !labels[x][y].isEmpty() &&
+                        (notes[x][y] != null) && !notes[x][y].isEmpty()) {
+                    poi.put(labels[x][y], notes[x][y]);
+                }
+            }
+        }
+        
+        BufferedImage dmMap = new BufferedImage(((maxX - minX + 1) * Piece.PIECE_SIZE), (((maxY - minY + 1) * Piece.PIECE_SIZE) + ((poi.size() + 1) * 24)), BufferedImage.TYPE_INT_RGB);
+        BufferedImage playerMap = new BufferedImage(((maxX - minX + 1) * Piece.PIECE_SIZE), ((maxY - minY + 1) * Piece.PIECE_SIZE), BufferedImage.TYPE_INT_RGB);
         Graphics dmMapGraphics = dmMap.getGraphics();
         Graphics playerMapGraphics = playerMap.getGraphics();
+        
+        dmMapGraphics.setColor(Color.WHITE);
+        playerMapGraphics.setColor(Color.WHITE);
+        dmMapGraphics.fillRect(0, 0, dmMap.getWidth(), dmMap.getHeight());
+        playerMapGraphics.fillRect(0, 0, playerMap.getWidth(), playerMap.getHeight());
+        dmMapGraphics.setColor(Color.DARK_GRAY);
+        dmMapGraphics.setFont(new Font("Consolas", Font.ITALIC, 24));
+        
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 Piece piece = (map[x][y] == null) ? pieces.get("Space") : map[x][y];
                 BufferedImage dmIcon = piece.icon;
                 BufferedImage playerIcon = (piece.replaceForPlayer == null) ? dmIcon : piece.replaceForPlayer.icon;
+                
                 dmMapGraphics.drawImage(dmIcon, (x - minX) * Piece.PIECE_SIZE, (y - minY) * Piece.PIECE_SIZE, null);
+                if ((labels[x][y] != null) && !labels[x][y].isEmpty()) {
+                    dmMapGraphics.drawString(labels[x][y],
+                            ((x - minX) * Piece.PIECE_SIZE + 17), ((y - minY) * Piece.PIECE_SIZE - 17));
+                }
                 playerMapGraphics.drawImage(playerIcon, (x - minX) * Piece.PIECE_SIZE, (y - minY) * Piece.PIECE_SIZE, null);
             }
         }
         
-        File dmOutput = new File(outputDirectory, mapName + " (print).png");
-        File playerOutput = new File(outputDirectory, mapName + " (player).png");
+        if (!poi.isEmpty()) {
+            final int bottom = maxY - minY + 1;
+            final AtomicInteger poiIndex = new AtomicInteger(1);
+            final int labelLength = poi.keySet().stream().mapToInt(String::length).max().orElse(1);
+            
+            dmMapGraphics.setColor(new Color(32, 32, 32));
+            dmMapGraphics.drawLine(0, (bottom * Piece.PIECE_SIZE), dmMap.getWidth(), (bottom * Piece.PIECE_SIZE));
+            dmMapGraphics.setColor(Color.DARK_GRAY);
+            
+            poi.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEachOrdered(e -> {
+                char[] spacing = new char[labelLength - e.getKey().length()];
+                Arrays.fill(spacing, ' ');
+                dmMapGraphics.drawString(e.getKey() + new String(spacing) + " - " + e.getValue(),
+                        (Piece.PIECE_SIZE + 7), (bottom * Piece.PIECE_SIZE + (24 * poiIndex.getAndIncrement()) + 10));
+            });
+        }
+        
+        File dmOutput = new File(exportDirectory, mapName + " (print).png");
+        File playerOutput = new File(exportDirectory, mapName + " (player).png");
         try {
             ImageIO.write(dmMap, "png", dmOutput);
             ImageIO.write(playerMap, "png", playerOutput);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Error: " + mapName + " could not be exported!");
         }
+        
+        DndMapParser.main(new String[] {playerOutput.getAbsolutePath()});
     }
     
     
@@ -576,6 +707,7 @@ public class DndMapMaker2D extends Scene {
         pieces.put("Nothing", new Piece(new File(resourceDir, "nothing.png"), "Nothing"));
         pieces.put("Space", new Piece(new File(resourceDir, "space.png"), "Space"));
         pieces.put("Border", new Piece(new File(resourceDir, "border.png"), "Border"));
+        pieces.put("Path", new Piece(new File(resourceDir, "path.png"), "Path"));
         pieces.put("Doorway Horizontal", new Piece(new File(resourceDir, "doorwayHorizontal.png"), "Doorway Horizontal"));
         pieces.put("Doorway Vertical", new Piece(new File(resourceDir, "doorwayVertical.png"), "Doorway Vertical"));
         pieces.put("Door Horizontal", new Piece(new File(resourceDir, "doorHorizontal.png"), "Door Horizontal"));
@@ -586,6 +718,8 @@ public class DndMapMaker2D extends Scene {
         pieces.put("Trapped Door Vertical", new Piece(new File(resourceDir, "trappedDoorVertical.png"), "Trapped Door Vertical", pieces.get("Door Vertical")));
         pieces.put("Locked Trapped Door Horizontal", new Piece(new File(resourceDir, "lockedTrappedDoorHorizontal.png"), "Locked Trapped Door Horizontal", pieces.get("Door Horizontal")));
         pieces.put("Locked Trapped Door Vertical", new Piece(new File(resourceDir, "lockedTrappedDoorVertical.png"), "Locked Trapped Door Vertical", pieces.get("Door Vertical")));
+        pieces.put("Secret Door Horizontal", new Piece(new File(resourceDir, "secretDoorHorizontal.png"), "Secret Door Horizontal", pieces.get("Border")));
+        pieces.put("Secret Door Vertical", new Piece(new File(resourceDir, "secretDoorVertical.png"), "Secret Door Vertical", pieces.get("Border")));
         pieces.put("Window Horizontal", new Piece(new File(resourceDir, "windowHorizontal.png"), "Window Horizontal"));
         pieces.put("Window Vertical", new Piece(new File(resourceDir, "windowVertical.png"), "Window Vertical"));
         pieces.put("Down Stairs Up", new Piece(new File(resourceDir, "downStairsUp.png"), "Down Stairs Up"));
@@ -596,6 +730,10 @@ public class DndMapMaker2D extends Scene {
         pieces.put("Up Stairs Down", new Piece(new File(resourceDir, "upStairsDown.png"), "Up Stairs Down"));
         pieces.put("Up Stairs Left", new Piece(new File(resourceDir, "upStairsLeft.png"), "Up Stairs Left"));
         pieces.put("Up Stairs Right", new Piece(new File(resourceDir, "upStairsRight.png"), "Up Stairs Right"));
+        pieces.put("Ramp Up", new Piece(new File(resourceDir, "rampUp.png"), "Ramp Up"));
+        pieces.put("Ramp Down", new Piece(new File(resourceDir, "rampDown.png"), "Ramp Down"));
+        pieces.put("Ramp Left", new Piece(new File(resourceDir, "rampLeft.png"), "Ramp Left"));
+        pieces.put("Ramp Right", new Piece(new File(resourceDir, "rampRight.png"), "Ramp Right"));
     }
     
 }

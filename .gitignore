@@ -2,6 +2,9 @@
 /.idea/workspace.xml
 **/*.iws
 
+**/SAVE/
+**/OUTPUT/
+
 **/bin/
 **/target/
 **/out/
