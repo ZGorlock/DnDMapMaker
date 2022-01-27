@@ -22,15 +22,16 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -157,7 +158,9 @@ public class DndMapMaker2D extends Scene {
     public DndMapMaker2D(Environment environment) {
         super(environment);
         DndMapMaker2D.environment = environment;
+        
         initializeMap(DEFAULT_MAP_DIM_X, DEFAULT_MAP_DIM_Y);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::autoSaveState));
     }
     
     
@@ -555,13 +558,21 @@ public class DndMapMaker2D extends Scene {
     }
     
     /**
+     * Auto saves the state of the map layout.
+     */
+    @SuppressWarnings("SpellCheckingInspection")
+    private void autoSaveState() {
+        saveState("X-" + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
+    }
+    
+    /**
      * Loads the state of the map layout.
      *
      * @param mapName The name of the map.
      */
     @SuppressWarnings({"ResultOfMethodCallIgnored"})
     private void loadState(String mapName) {
-        saveState(UUID.randomUUID().toString());
+        autoSaveState();
         
         File saveDirectory = new File("SAVE");
         if (!saveDirectory.exists()) {
