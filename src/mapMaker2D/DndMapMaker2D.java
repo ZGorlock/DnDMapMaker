@@ -47,7 +47,9 @@ import javax.swing.border.TitledBorder;
 import graphy.camera.Camera;
 import graphy.main.Environment;
 import graphy.math.vector.Vector;
+import graphy.objects.base.Object;
 import graphy.objects.base.Scene;
+import graphy.objects.base.polygon.Rectangle;
 import mapParser.BlackSpaceReducer;
 import mapParser.DndMapParser;
 
@@ -107,22 +109,37 @@ public class DndMapMaker2D extends Scene {
     /**
      * The layout of the map.
      */
-    private Piece[][] map;
+    private Piece[][] map = new Piece[][] {};
     
     /**
      * The map squares of the map.
      */
-    private MapSquare[][] mapSquares;
+    private MapSquare[][] mapSquares = new MapSquare[][] {};
     
     /**
      * The labels of the map squares.
      */
-    private String[][] labels;
+    private String[][] labels = new String[][] {};
     
     /**
      * The notes of the map squares.
      */
-    private String[][] notes;
+    private String[][] notes = new String[][] {};
+    
+    /**
+     * The active map region.
+     */
+    private final Rectangle mapRegion = new Rectangle(new Vector(0, 0), new Vector(0, 0), new Vector(0, 0), new Vector(0, 0));
+    
+    /**
+     * The active print region.
+     */
+    private final Rectangle printRegion = new Rectangle(new Vector(0, 0), new Vector(0, 0), new Vector(0, 0), new Vector(0, 0));
+    
+    /**
+     * The page break guidelines of the map.
+     */
+    private final Object pageGuidelines = new Object(Color.RED);
     
     /**
      * The selected piece.
@@ -176,23 +193,28 @@ public class DndMapMaker2D extends Scene {
         MAP_DIM.setX(mapDimX);
         MAP_DIM.setY(mapDimY);
         
+        Arrays.stream((mapSquares != null) ? mapSquares : new MapSquare[][] {}).flatMap(Arrays::stream).forEach(this::unregisterComponent);
+        
         map = new Piece[mapDimX][mapDimY];
         mapSquares = new MapSquare[mapDimX][mapDimY];
         labels = new String[mapDimX][mapDimY];
         notes = new String[mapDimX][mapDimY];
+        
+        mapRegion.setPoints(new Vector(Integer.MAX_VALUE, Integer.MAX_VALUE), new Vector(Integer.MIN_VALUE, Integer.MAX_VALUE), new Vector(Integer.MIN_VALUE, Integer.MIN_VALUE), new Vector(Integer.MAX_VALUE, Integer.MIN_VALUE));
+        printRegion.setPoints(new Vector(Integer.MAX_VALUE, Integer.MAX_VALUE), new Vector(Integer.MIN_VALUE, Integer.MAX_VALUE), new Vector(Integer.MIN_VALUE, Integer.MIN_VALUE), new Vector(Integer.MAX_VALUE, Integer.MIN_VALUE));
+        pageGuidelines.getComponents().clear();
+        registerComponent(pageGuidelines);
         
         for (int x = 0; x < mapDimX; x++) {
             for (int y = 0; y < mapDimY; y++) {
                 MapSquare square = new MapSquare(Color.WHITE, new Vector((x - (mapDimX / 2.0)) * PIECE_SIZE, (y - (mapDimY / 2.0)) * PIECE_SIZE, 0), PIECE_SIZE);
                 square.addFrame(Color.BLACK);
                 registerComponent(square);
-                
-                map[x][y] = null;
                 mapSquares[x][y] = square;
-                labels[x][y] = null;
-                notes[x][y] = null;
             }
         }
+        
+        updateMapRegion(-1, -1, false, true);
     }
     
     /**
@@ -345,7 +367,7 @@ public class DndMapMaker2D extends Scene {
             public void mouseClicked(MouseEvent e) {
             }
             
-            @SuppressWarnings({"ManualArrayCopy", "deprecation"})
+            @SuppressWarnings("deprecation")
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
@@ -377,6 +399,7 @@ public class DndMapMaker2D extends Scene {
                                                 mapSquare.setNote(note.replaceAll("[:,;]", ""));
                                             }
                                         }
+                                        updateMapRegion(x, y, !mapSquare.hasLabel(), false);
                                         hit = true;
                                         break;
                                     }
@@ -387,7 +410,7 @@ public class DndMapMaker2D extends Scene {
                                         boolean overlap = false;
                                         for (int i = x; i < (x + selectedPiece.sizeX); i++) {
                                             for (int j = y; j < (y + selectedPiece.sizeY); j++) {
-                                                if (i == x && j == y) {
+                                                if ((i == x) && (j == y)) {
                                                     continue;
                                                 }
                                                 if (map[i][j] != null) {
@@ -423,10 +446,12 @@ public class DndMapMaker2D extends Scene {
                                             
                                             if (selectedPiece.name.equalsIgnoreCase("Nothing")) {
                                                 mapSquare.setImage(null);
+                                                updateMapRegion(x, y, !mapSquare.hasLabel(), false);
                                             } else {
                                                 for (int i = 0; i < selectedPiece.sizeX; i++) {
                                                     for (int j = 0; j < selectedPiece.sizeY; j++) {
                                                         map[x + i][y + j] = selectedPiece.subPieces[i][j];
+                                                        updateMapRegion((x + i), (y + j), false, false);
                                                     }
                                                 }
                                             }
@@ -470,20 +495,24 @@ public class DndMapMaker2D extends Scene {
             @Override
             public void mouseMoved(MouseEvent e) {
                 boolean ctrl = (e.getModifiers() & ActionEvent.CTRL_MASK) == ActionEvent.CTRL_MASK;
+                boolean shift = (e.getModifiers() & ActionEvent.SHIFT_MASK) == ActionEvent.SHIFT_MASK;
                 if (noteTimer != null) {
                     noteTimer.cancel();
                 }
                 
+                Vector hoveredSquare = null;
                 for (int x = 0; x < mapSquares.length; x++) {
                     for (int y = 0; y < mapSquares[0].length; y++) {
                         MapSquare mapSquare = mapSquares[x][y];
                         if (mapSquare != null && mapSquare.isRendered()) {
+                            
                             List<Vector> prepared = mapSquare.getPrepared();
                             if (prepared.size() == 4 &&
                                     e.getX() > prepared.get(0).getX() &&
                                     e.getX() < prepared.get(1).getX() &&
                                     e.getY() > prepared.get(0).getY() &&
                                     e.getY() < prepared.get(3).getY()) {
+                                hoveredSquare = new Vector(x, y);
                                 
                                 mapSquare.setColor(Color.GREEN);
                                 if (map[x][y] != null) {
@@ -509,6 +538,25 @@ public class DndMapMaker2D extends Scene {
                                 if (map[x][y] != null) {
                                     mapSquare.setImage(map[x][y].icon);
                                 }
+                            }
+                        }
+                    }
+                }
+                
+                if (shift && (hoveredSquare != null) && (printRegion.getP1().getX() <= MAP_DIM.getX()) &&
+                        (hoveredSquare.getX() >= printRegion.getP1().getX()) && (hoveredSquare.getY() >= printRegion.getP1().getY()) &&
+                        (hoveredSquare.getX() <= printRegion.getP3().getX()) && (hoveredSquare.getY() <= printRegion.getP3().getY())) {
+                    
+                    final int pageMinX = (int) printRegion.getP1().getX() + ((int) ((hoveredSquare.getX() - printRegion.getP1().getX()) / DndMapParser.WIDTH_PER_PAGE) * DndMapParser.WIDTH_PER_PAGE);
+                    final int pageMinY = (int) printRegion.getP1().getY() + ((int) ((hoveredSquare.getY() - printRegion.getP1().getY()) / DndMapParser.HEIGHT_PER_PAGE) * DndMapParser.HEIGHT_PER_PAGE);
+                    final int pageMaxX = Math.min((pageMinX + DndMapParser.WIDTH_PER_PAGE), (int) MAP_DIM.getX());
+                    final int pageMaxY = Math.min((pageMinY + DndMapParser.HEIGHT_PER_PAGE), (int) MAP_DIM.getY());
+                    
+                    for (int x = pageMinX; x < pageMaxX; x++) {
+                        for (int y = pageMinY; y < pageMaxY; y++) {
+                            mapSquares[x][y].setColor(Color.GREEN);
+                            if (map[x][y] != null) {
+                                mapSquares[x][y].setImage(map[x][y].highlightedIcon);
                             }
                         }
                     }
@@ -646,6 +694,8 @@ public class DndMapMaker2D extends Scene {
                 mapSquares[x][y].setNote(note);
             }
         }
+        
+        updateMapRegion(-1, -1, false, true);
     }
     
     /**
@@ -655,7 +705,7 @@ public class DndMapMaker2D extends Scene {
      */
     @SuppressWarnings({"ResultOfMethodCallIgnored", "SpellCheckingInspection"})
     private void exportState(String mapName) {
-        saveState(mapName + "-export");
+        autoSaveState();
         
         File outputDirectory = new File("OUTPUT");
         File exportDirectory = new File(outputDirectory, mapName);
@@ -666,20 +716,10 @@ public class DndMapMaker2D extends Scene {
             exportDirectory.mkdir();
         }
         
-        int minX = Integer.MAX_VALUE;
-        int minY = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE;
-        int maxY = Integer.MIN_VALUE;
-        for (int x = 0; x < map.length; x++) {
-            for (int y = 0; y < map[0].length; y++) {
-                if (map[x][y] != null) {
-                    minX = Math.min(x, minX);
-                    minY = Math.min(y, minY);
-                    maxX = Math.max(x, maxX);
-                    maxY = Math.max(y, maxY);
-                }
-            }
-        }
+        final int minX = (int) mapRegion.getP1().getX();
+        final int minY = (int) mapRegion.getP1().getY();
+        final int maxX = (int) mapRegion.getP3().getX();
+        final int maxY = (int) mapRegion.getP3().getY();
         
         Map<String, String> poi = new LinkedHashMap<>();
         for (int x = minX; x <= maxX; x++) {
@@ -746,6 +786,54 @@ public class DndMapMaker2D extends Scene {
         
         DndMapParser.main(new String[] {playerOutput.getAbsolutePath()});
         BlackSpaceReducer.main(new String[] {new File(exportDirectory, "map-Player").getAbsolutePath()});
+    }
+    
+    /**
+     * Updates the active region of the map.
+     *
+     * @param x           The x coordinate of the edited piece.
+     * @param y           The y coordinate of the edited piece.
+     * @param removal     Whether the edited piece was removed or not.
+     * @param recalculate Whether the active region of the map should be recalculated or not.
+     */
+    private void updateMapRegion(int x, int y, boolean removal, boolean recalculate) {
+        final boolean inRegion = (x >= (int) mapRegion.getP1().getX()) && (y >= (int) mapRegion.getP1().getY()) &&
+                (x < (int) mapRegion.getP3().getX()) && (y < (int) mapRegion.getP3().getY());
+        final boolean onEdge = (x == (int) mapRegion.getP1().getX()) || (y == (int) mapRegion.getP1().getY()) ||
+                (x == (int) mapRegion.getP3().getX()) || (y == (int) mapRegion.getP3().getY());
+        if (!recalculate && ((!removal && inRegion) || (removal && !onEdge))) {
+            return;
+        }
+        
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        
+        if (recalculate || removal) {
+            for (int i = 0; i < map.length; i++) {
+                for (int j = 0; j < map[0].length; j++) {
+                    if ((map[i][j] != null) || mapSquares[i][j].hasLabel()) {
+                        minX = Math.min(i, minX);
+                        minY = Math.min(j, minY);
+                        maxX = Math.max(i, maxX);
+                        maxY = Math.max(j, maxY);
+                    }
+                }
+            }
+            
+        } else {
+            minX = Math.min(x, (int) mapRegion.getP1().getX());
+            minY = Math.min(y, (int) mapRegion.getP1().getY());
+            maxX = Math.max(x, (int) mapRegion.getP3().getX());
+            maxY = Math.max(y, (int) mapRegion.getP3().getY());
+        }
+        
+        final int maxPrintX = minX + ((int) Math.ceil((double) (maxX - minX + 1) / DndMapParser.WIDTH_PER_PAGE) * DndMapParser.WIDTH_PER_PAGE) - 1;
+        final int maxPrintY = minY + ((int) Math.ceil((double) (maxY - minY + 1) / DndMapParser.HEIGHT_PER_PAGE) * DndMapParser.HEIGHT_PER_PAGE) - 1;
+        
+        mapRegion.setPoints(new Vector(minX, minY), new Vector(maxX, minY), new Vector(maxX, maxY), new Vector(minX, maxY));
+        printRegion.setPoints(new Vector(minX, minY), new Vector(maxPrintX, minY), new Vector(maxPrintX, maxPrintY), new Vector(minX, maxPrintY));
     }
     
     

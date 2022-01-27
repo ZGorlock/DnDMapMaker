@@ -31,12 +31,12 @@ public class DndMapParser {
     /**
      * The width in tiles per page.
      */
-    private static final int WIDTH_PER_PAGE = 8;
+    public static final int WIDTH_PER_PAGE = 8;
     
     /**
      * The height in tiles per page.
      */
-    private static final int HEIGHT_PER_PAGE = 10;
+    public static final int HEIGHT_PER_PAGE = 10;
     
     
     //Static Fields

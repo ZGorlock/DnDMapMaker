@@ -53,20 +53,38 @@ public class MapSquare extends ImageSquare {
     @Override
     public void render(Graphics2D g2) {
         super.render(g2);
-        if ((note != null) && !note.isEmpty()) {
+        if (hasNote()) {
             g2.setColor(Color.RED);
             g2.fillRect((int) (prepared.get(0).getX() + ((prepared.get(1).getX() - prepared.get(0).getX()) * 0.75)),
                     (int) (prepared.get(1).getY() + ((prepared.get(2).getY() - prepared.get(1).getY()) * 0.15)),
                     (int) ((prepared.get(1).getX() - prepared.get(0).getX()) * 0.15), (int) ((prepared.get(2).getY() - prepared.get(1).getY()) * 0.15));
             g2.setColor(getColor());
         }
-        if (label != null) {
+        if (hasLabel()) {
             g2.setColor(Color.DARK_GRAY);
             g2.setFont(new Font("Consolas", Font.ITALIC, 20));
             g2.drawString(label, (int) (prepared.get(0).getX() + ((prepared.get(1).getX() - prepared.get(0).getX()) * 0.5) - 7),
                     (int) (prepared.get(1).getY() + ((prepared.get(2).getY() - prepared.get(1).getY()) * 0.5)) + 10);
             g2.setColor(getColor());
         }
+    }
+    
+    /**
+     * Returns whether the Map Square has a label.
+     *
+     * @return Whether the Map Square has a label.
+     */
+    public boolean hasLabel() {
+        return ((label != null) && !label.isEmpty());
+    }
+    
+    /**
+     * Returns whether the Map Square has a note.
+     *
+     * @return Whether the Map Square has a note.
+     */
+    public boolean hasNote() {
+        return (note != null) && !note.isEmpty();
     }
     
     
