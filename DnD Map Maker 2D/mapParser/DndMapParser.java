@@ -31,12 +31,12 @@ public class DndMapParser {
     /**
      * The width in tiles per page.
      */
-    private static final int WIDTH_PER_PAGE = 8;
+    public static final int WIDTH_PER_PAGE = 8;
     
     /**
      * The height in tiles per page.
      */
-    private static final int HEIGHT_PER_PAGE = 10;
+    public static final int HEIGHT_PER_PAGE = 10;
     
     
     //Static Fields
@@ -52,7 +52,7 @@ public class DndMapParser {
     private static String fileType = "";
     
     /**
-     * A flag indicating whether or not the filter the map tiles.
+     * A flag indicating whether to filter the map tiles or not.
      */
     private static boolean filter = true;
     
@@ -64,10 +64,10 @@ public class DndMapParser {
     /**
      * An array of map tiles derived from the map image.
      */
-    private static List<List<BufferedImage>> tiles = new ArrayList<>();
+    private static final List<List<BufferedImage>> tiles = new ArrayList<>();
     
     /**
-     * A flag indicating whether or not the program is working on the DM map.
+     * A flag indicating whether the program is working on the DM map or not.
      */
     private static boolean dmFlag = false;
     
@@ -149,6 +149,7 @@ public class DndMapParser {
     /**
      * Parses the map.
      */
+    @SuppressWarnings("SpellCheckingInspection")
     private static void parseMap() {
         int column = 0;
         
@@ -349,7 +350,7 @@ public class DndMapParser {
      * Filters the tile for empty space.
      *
      * @param tile The tile.
-     * @return Whether or not the file contains meaningful information.
+     * @return Whether the file contains meaningful information or not.
      */
     private static boolean filterTile(BufferedImage tile) {
         if (!filter) {

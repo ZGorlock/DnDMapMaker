@@ -22,14 +22,16 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -45,7 +47,9 @@ import javax.swing.border.TitledBorder;
 import graphy.camera.Camera;
 import graphy.main.Environment;
 import graphy.math.vector.Vector;
+import graphy.objects.base.Object;
 import graphy.objects.base.Scene;
+import graphy.objects.base.polygon.Rectangle;
 import mapParser.BlackSpaceReducer;
 import mapParser.DndMapParser;
 
@@ -57,9 +61,29 @@ public class DndMapMaker2D extends Scene {
     //Constants
     
     /**
+     * The default x dimension of the map.
+     */
+    public static final int DEFAULT_MAP_DIM_X = 100;
+    
+    /**
+     * The default y dimension of the map.
+     */
+    public static final int DEFAULT_MAP_DIM_Y = 100;
+    
+    /**
      * The size of the map.
      */
-    public static final Vector MAP_DIM = new Vector(100, 100);
+    public static final Vector MAP_DIM = new Vector(DEFAULT_MAP_DIM_X, DEFAULT_MAP_DIM_Y);
+    
+    /**
+     * The x offset to apply when loading saved maps.
+     */
+    public static final int LOAD_OFFSET_X = 0;
+    
+    /**
+     * The y offset to apply when loading saved maps.
+     */
+    public static final int LOAD_OFFSET_Y = 0;
     
     /**
      * The render size of each square of the map.
@@ -70,13 +94,14 @@ public class DndMapMaker2D extends Scene {
     //Static Fields
     
     /**
-     * The list of available pieces for the map.
+     * The environment of the DnD MapMaker 2D scene.
      */
-    public static final Map<String, Piece> pieces = new LinkedHashMap<>();
+    private static Environment environment;
     
-    static {
-        loadPieces();
-    }
+    /**
+     * The available pieces for the map.
+     */
+    public static final Map<String, Piece> pieces = Collections.unmodifiableMap(loadPieces());
     
     
     //Fields
@@ -84,22 +109,37 @@ public class DndMapMaker2D extends Scene {
     /**
      * The layout of the map.
      */
-    private Piece[][] map = new Piece[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+    private Piece[][] map = new Piece[][] {};
     
     /**
      * The map squares of the map.
      */
-    private MapSquare[][] mapSquares = new MapSquare[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+    private MapSquare[][] mapSquares = new MapSquare[][] {};
     
     /**
      * The labels of the map squares.
      */
-    private String[][] labels = new String[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+    private String[][] labels = new String[][] {};
     
     /**
      * The notes of the map squares.
      */
-    private String[][] notes = new String[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+    private String[][] notes = new String[][] {};
+    
+    /**
+     * The active map region.
+     */
+    private final Rectangle mapRegion = new Rectangle(new Vector(0, 0), new Vector(0, 0), new Vector(0, 0), new Vector(0, 0));
+    
+    /**
+     * The active print region.
+     */
+    private final Rectangle printRegion = new Rectangle(new Vector(0, 0), new Vector(0, 0), new Vector(0, 0), new Vector(0, 0));
+    
+    /**
+     * The page break guidelines of the map.
+     */
+    private final Object pageGuidelines = new Object(Color.RED);
     
     /**
      * The selected piece.
@@ -135,30 +175,50 @@ public class DndMapMaker2D extends Scene {
     public DndMapMaker2D(Environment environment) {
         super(environment);
         DndMapMaker2D.environment = environment;
+        
+        initializeMap(DEFAULT_MAP_DIM_X, DEFAULT_MAP_DIM_Y);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::autoSaveState));
     }
-    
-    private static Environment environment;
     
     
     //Methods
     
     /**
-     * Calculates the components that compose the DnD Map Maker 2D.
+     * Initializes the map.
+     *
+     * @param mapDimX The x dimension of the map.
+     * @param mapDimY The y dimension of the map.
      */
-    @Override
-    public void calculate() {
-        for (int x = 0; x < MAP_DIM.getX(); x++) {
-            for (int y = 0; y < MAP_DIM.getY(); y++) {
-                MapSquare square = new MapSquare(Color.WHITE, new Vector((x - (MAP_DIM.getX() / 2)) * PIECE_SIZE, (y - (MAP_DIM.getY() / 2)) * PIECE_SIZE, 0), PIECE_SIZE);
+    public void initializeMap(int mapDimX, int mapDimY) {
+        MAP_DIM.setX(mapDimX);
+        MAP_DIM.setY(mapDimY);
+        
+        Arrays.stream((mapSquares != null) ? mapSquares : new MapSquare[][] {}).flatMap(Arrays::stream).forEach(this::unregisterComponent);
+        
+        map = new Piece[mapDimX][mapDimY];
+        mapSquares = new MapSquare[mapDimX][mapDimY];
+        labels = new String[mapDimX][mapDimY];
+        notes = new String[mapDimX][mapDimY];
+        
+        mapRegion.setPoints(new Vector(Integer.MAX_VALUE, Integer.MAX_VALUE), new Vector(Integer.MIN_VALUE, Integer.MAX_VALUE), new Vector(Integer.MIN_VALUE, Integer.MIN_VALUE), new Vector(Integer.MAX_VALUE, Integer.MIN_VALUE));
+        printRegion.setPoints(new Vector(Integer.MAX_VALUE, Integer.MAX_VALUE), new Vector(Integer.MIN_VALUE, Integer.MAX_VALUE), new Vector(Integer.MIN_VALUE, Integer.MIN_VALUE), new Vector(Integer.MAX_VALUE, Integer.MIN_VALUE));
+        pageGuidelines.getComponents().clear();
+        registerComponent(pageGuidelines);
+        
+        for (int x = 0; x < mapDimX; x++) {
+            for (int y = 0; y < mapDimY; y++) {
+                MapSquare square = new MapSquare(Color.WHITE, new Vector((x - (mapDimX / 2.0)) * PIECE_SIZE, (y - (mapDimY / 2.0)) * PIECE_SIZE, 0), PIECE_SIZE);
                 square.addFrame(Color.BLACK);
                 registerComponent(square);
                 mapSquares[x][y] = square;
             }
         }
+        
+        updateMapRegion(-1, -1, false, true);
     }
     
     /**
-     * Sets up components for the DnD Map Maker 2D scene.
+     * Sets up components for the DnD MapMaker 2D scene.
      */
     @Override
     public void initComponents() {
@@ -288,7 +348,7 @@ public class DndMapMaker2D extends Scene {
     }
     
     /**
-     * Sets up cameras for the DnD Map Maker 2D scene.
+     * Sets up cameras for the DnD MapMaker 2D scene.
      */
     @Override
     public void setupCameras() {
@@ -298,7 +358,7 @@ public class DndMapMaker2D extends Scene {
     }
     
     /**
-     * Sets up controls for the DnD Map Maker 2D scene.
+     * Sets up controls for the DnD MapMaker 2D scene.
      */
     @Override
     public void setupControls() {
@@ -307,7 +367,7 @@ public class DndMapMaker2D extends Scene {
             public void mouseClicked(MouseEvent e) {
             }
             
-            @SuppressWarnings("ManualArrayCopy")
+            @SuppressWarnings("deprecation")
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
@@ -339,6 +399,7 @@ public class DndMapMaker2D extends Scene {
                                                 mapSquare.setNote(note.replaceAll("[:,;]", ""));
                                             }
                                         }
+                                        updateMapRegion(x, y, !mapSquare.hasLabel(), false);
                                         hit = true;
                                         break;
                                     }
@@ -349,7 +410,7 @@ public class DndMapMaker2D extends Scene {
                                         boolean overlap = false;
                                         for (int i = x; i < (x + selectedPiece.sizeX); i++) {
                                             for (int j = y; j < (y + selectedPiece.sizeY); j++) {
-                                                if (i == x && j == y) {
+                                                if ((i == x) && (j == y)) {
                                                     continue;
                                                 }
                                                 if (map[i][j] != null) {
@@ -385,10 +446,12 @@ public class DndMapMaker2D extends Scene {
                                             
                                             if (selectedPiece.name.equalsIgnoreCase("Nothing")) {
                                                 mapSquare.setImage(null);
+                                                updateMapRegion(x, y, !mapSquare.hasLabel(), false);
                                             } else {
                                                 for (int i = 0; i < selectedPiece.sizeX; i++) {
                                                     for (int j = 0; j < selectedPiece.sizeY; j++) {
                                                         map[x + i][y + j] = selectedPiece.subPieces[i][j];
+                                                        updateMapRegion((x + i), (y + j), false, false);
                                                     }
                                                 }
                                             }
@@ -428,23 +491,28 @@ public class DndMapMaker2D extends Scene {
             public void mouseDragged(MouseEvent e) {
             }
             
+            @SuppressWarnings("deprecation")
             @Override
             public void mouseMoved(MouseEvent e) {
                 boolean ctrl = (e.getModifiers() & ActionEvent.CTRL_MASK) == ActionEvent.CTRL_MASK;
+                boolean shift = (e.getModifiers() & ActionEvent.SHIFT_MASK) == ActionEvent.SHIFT_MASK;
                 if (noteTimer != null) {
                     noteTimer.cancel();
                 }
                 
+                Vector hoveredSquare = null;
                 for (int x = 0; x < mapSquares.length; x++) {
                     for (int y = 0; y < mapSquares[0].length; y++) {
                         MapSquare mapSquare = mapSquares[x][y];
                         if (mapSquare != null && mapSquare.isRendered()) {
+                            
                             List<Vector> prepared = mapSquare.getPrepared();
                             if (prepared.size() == 4 &&
                                     e.getX() > prepared.get(0).getX() &&
                                     e.getX() < prepared.get(1).getX() &&
                                     e.getY() > prepared.get(0).getY() &&
                                     e.getY() < prepared.get(3).getY()) {
+                                hoveredSquare = new Vector(x, y);
                                 
                                 mapSquare.setColor(Color.GREEN);
                                 if (map[x][y] != null) {
@@ -474,6 +542,25 @@ public class DndMapMaker2D extends Scene {
                         }
                     }
                 }
+                
+                if (shift && (hoveredSquare != null) && (printRegion.getP1().getX() <= MAP_DIM.getX()) &&
+                        (hoveredSquare.getX() >= printRegion.getP1().getX()) && (hoveredSquare.getY() >= printRegion.getP1().getY()) &&
+                        (hoveredSquare.getX() <= printRegion.getP3().getX()) && (hoveredSquare.getY() <= printRegion.getP3().getY())) {
+                    
+                    final int pageMinX = (int) printRegion.getP1().getX() + ((int) ((hoveredSquare.getX() - printRegion.getP1().getX()) / DndMapParser.WIDTH_PER_PAGE) * DndMapParser.WIDTH_PER_PAGE);
+                    final int pageMinY = (int) printRegion.getP1().getY() + ((int) ((hoveredSquare.getY() - printRegion.getP1().getY()) / DndMapParser.HEIGHT_PER_PAGE) * DndMapParser.HEIGHT_PER_PAGE);
+                    final int pageMaxX = Math.min((pageMinX + DndMapParser.WIDTH_PER_PAGE), (int) MAP_DIM.getX());
+                    final int pageMaxY = Math.min((pageMinY + DndMapParser.HEIGHT_PER_PAGE), (int) MAP_DIM.getY());
+                    
+                    for (int x = pageMinX; x < pageMaxX; x++) {
+                        for (int y = pageMinY; y < pageMaxY; y++) {
+                            mapSquares[x][y].setColor(Color.GREEN);
+                            if (map[x][y] != null) {
+                                mapSquares[x][y].setImage(map[x][y].highlightedIcon);
+                            }
+                        }
+                    }
+                }
             }
             
         });
@@ -493,6 +580,7 @@ public class DndMapMaker2D extends Scene {
         File save = new File(saveDirectory, mapName + ".save");
         
         StringBuilder state = new StringBuilder();
+        state.append("MAP:").append((int) MAP_DIM.getX()).append(":").append((int) MAP_DIM.getY()).append(",");
         state.append(Environment.origin.getX()).append(":").append(Environment.origin.getY()).append(":").append(Environment.origin.getZ()).append(",");
         Vector camera = Camera.getActiveCameraView().getLocation();
         state.append(camera.getX()).append(":").append(camera.getY()).append(":").append(camera.getZ());
@@ -518,13 +606,21 @@ public class DndMapMaker2D extends Scene {
     }
     
     /**
+     * Auto saves the state of the map layout.
+     */
+    @SuppressWarnings("SpellCheckingInspection")
+    private void autoSaveState() {
+        saveState("X-" + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
+    }
+    
+    /**
      * Loads the state of the map layout.
      *
      * @param mapName The name of the map.
      */
     @SuppressWarnings({"ResultOfMethodCallIgnored"})
     private void loadState(String mapName) {
-        saveState(UUID.randomUUID().toString());
+        autoSaveState();
         
         File saveDirectory = new File("SAVE");
         if (!saveDirectory.exists()) {
@@ -545,35 +641,38 @@ public class DndMapMaker2D extends Scene {
             return;
         }
         
-        map = new Piece[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
-        mapSquares = new MapSquare[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
-        labels = new String[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
-        notes = new String[(int) MAP_DIM.getX()][(int) MAP_DIM.getY()];
+        String[] mapPieces = state.split(",");
+        int index = 0;
+        
+        int mapDimX = DEFAULT_MAP_DIM_X;
+        int mapDimY = DEFAULT_MAP_DIM_Y;
+        if (mapPieces[index].startsWith("MAP:")) {
+            String[] mapDim = mapPieces[index++].split(":");
+            try {
+                mapDimX = Integer.parseInt(mapDim[1]);
+                mapDimY = Integer.parseInt(mapDim[2]);
+            } catch (Exception ignored) {
+            }
+        }
+        initializeMap(mapDimX, mapDimY);
         calculate();
         
-        String[] mapPieces = state.split(",");
-        
-        String[] origin = mapPieces[0].split(":");
+        String[] origin = mapPieces[index++].split(":");
         double originX = Double.parseDouble(origin[0]);
         double originY = Double.parseDouble(origin[1]);
         double originZ = Double.parseDouble(origin[2]);
         Environment.origin = new Vector(originX, originY, originZ);
         
-        String[] camera = mapPieces[1].split(":");
+        String[] camera = mapPieces[index++].split(":");
         double phi = Double.parseDouble(camera[0]);
         double theta = Double.parseDouble(camera[1]);
         double rho = Double.parseDouble(camera[2]);
         Camera.getActiveCameraView().setLocation(phi, theta, rho);
         
-        for (int x = 0; x < map.length; x++) {
-            for (int y = 0; y < map[0].length; y++) {
-                map[x][y] = null;
-            }
-        }
-        for (int p = 2; p < mapPieces.length; p++) {
-            String[] mapPieceData = mapPieces[p].split(":", -1);
-            int x = Integer.parseInt(mapPieceData[0]);
-            int y = Integer.parseInt(mapPieceData[1]);
+        for (; index < mapPieces.length; index++) {
+            String[] mapPieceData = mapPieces[index].split(":", -1);
+            int x = Integer.parseInt(mapPieceData[0]) + LOAD_OFFSET_X;
+            int y = Integer.parseInt(mapPieceData[1]) + LOAD_OFFSET_Y;
             Piece piece = mapPieceData[2].isEmpty() ? null : pieces.get(mapPieceData[2]);
             String label = ((mapPieceData.length < 4) || mapPieceData[3].isEmpty()) ? null : mapPieceData[3];
             String note = ((mapPieceData.length < 5) || mapPieceData[4].isEmpty()) ? null : mapPieceData[4];
@@ -595,6 +694,8 @@ public class DndMapMaker2D extends Scene {
                 mapSquares[x][y].setNote(note);
             }
         }
+        
+        updateMapRegion(-1, -1, false, true);
     }
     
     /**
@@ -602,9 +703,9 @@ public class DndMapMaker2D extends Scene {
      *
      * @param mapName The name of the map.
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "SpellCheckingInspection"})
     private void exportState(String mapName) {
-        saveState(mapName + "-export");
+        autoSaveState();
         
         File outputDirectory = new File("OUTPUT");
         File exportDirectory = new File(outputDirectory, mapName);
@@ -615,20 +716,10 @@ public class DndMapMaker2D extends Scene {
             exportDirectory.mkdir();
         }
         
-        int minX = Integer.MAX_VALUE;
-        int minY = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE;
-        int maxY = Integer.MIN_VALUE;
-        for (int x = 0; x < map.length; x++) {
-            for (int y = 0; y < map[0].length; y++) {
-                if (map[x][y] != null) {
-                    minX = Math.min(x, minX);
-                    minY = Math.min(y, minY);
-                    maxX = Math.max(x, maxX);
-                    maxY = Math.max(y, maxY);
-                }
-            }
-        }
+        final int minX = (int) mapRegion.getP1().getX();
+        final int minY = (int) mapRegion.getP1().getY();
+        final int maxX = (int) mapRegion.getP3().getX();
+        final int maxY = (int) mapRegion.getP3().getY();
         
         Map<String, String> poi = new LinkedHashMap<>();
         for (int x = minX; x <= maxX; x++) {
@@ -697,45 +788,97 @@ public class DndMapMaker2D extends Scene {
         BlackSpaceReducer.main(new String[] {new File(exportDirectory, "map-Player").getAbsolutePath()});
     }
     
+    /**
+     * Updates the active region of the map.
+     *
+     * @param x           The x coordinate of the edited piece.
+     * @param y           The y coordinate of the edited piece.
+     * @param removal     Whether the edited piece was removed or not.
+     * @param recalculate Whether the active region of the map should be recalculated or not.
+     */
+    private void updateMapRegion(int x, int y, boolean removal, boolean recalculate) {
+        final boolean inRegion = (x >= (int) mapRegion.getP1().getX()) && (y >= (int) mapRegion.getP1().getY()) &&
+                (x < (int) mapRegion.getP3().getX()) && (y < (int) mapRegion.getP3().getY());
+        final boolean onEdge = (x == (int) mapRegion.getP1().getX()) || (y == (int) mapRegion.getP1().getY()) ||
+                (x == (int) mapRegion.getP3().getX()) || (y == (int) mapRegion.getP3().getY());
+        if (!recalculate && ((!removal && inRegion) || (removal && !onEdge))) {
+            return;
+        }
+        
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        
+        if (recalculate || removal) {
+            for (int i = 0; i < map.length; i++) {
+                for (int j = 0; j < map[0].length; j++) {
+                    if ((map[i][j] != null) || mapSquares[i][j].hasLabel()) {
+                        minX = Math.min(i, minX);
+                        minY = Math.min(j, minY);
+                        maxX = Math.max(i, maxX);
+                        maxY = Math.max(j, maxY);
+                    }
+                }
+            }
+            
+        } else {
+            minX = Math.min(x, (int) mapRegion.getP1().getX());
+            minY = Math.min(y, (int) mapRegion.getP1().getY());
+            maxX = Math.max(x, (int) mapRegion.getP3().getX());
+            maxY = Math.max(y, (int) mapRegion.getP3().getY());
+        }
+        
+        final int maxPrintX = minX + ((int) Math.ceil((double) (maxX - minX + 1) / DndMapParser.WIDTH_PER_PAGE) * DndMapParser.WIDTH_PER_PAGE) - 1;
+        final int maxPrintY = minY + ((int) Math.ceil((double) (maxY - minY + 1) / DndMapParser.HEIGHT_PER_PAGE) * DndMapParser.HEIGHT_PER_PAGE) - 1;
+        
+        mapRegion.setPoints(new Vector(minX, minY), new Vector(maxX, minY), new Vector(maxX, maxY), new Vector(minX, maxY));
+        printRegion.setPoints(new Vector(minX, minY), new Vector(maxPrintX, minY), new Vector(maxPrintX, maxPrintY), new Vector(minX, maxPrintY));
+    }
+    
     
     //Static Methods
     
     /**
      * Loads the available map pieces.
+     *
+     * @return The available map pieces.
      */
-    private static void loadPieces() {
-        File resourceDir = new File("resource/mapMaker2D");
+    private static Map<String, Piece> loadPieces() {
+        final File resourceDir = new File("resource/mapMaker2D");
         
-        pieces.put("Nothing", new Piece(new File(resourceDir, "nothing.png"), "Nothing"));
-        pieces.put("Space", new Piece(new File(resourceDir, "space.png"), "Space"));
-        pieces.put("Border", new Piece(new File(resourceDir, "border.png"), "Border"));
-        pieces.put("Path", new Piece(new File(resourceDir, "path.png"), "Path"));
-        pieces.put("Doorway Horizontal", new Piece(new File(resourceDir, "doorwayHorizontal.png"), "Doorway Horizontal"));
-        pieces.put("Doorway Vertical", new Piece(new File(resourceDir, "doorwayVertical.png"), "Doorway Vertical"));
-        pieces.put("Door Horizontal", new Piece(new File(resourceDir, "doorHorizontal.png"), "Door Horizontal"));
-        pieces.put("Door Vertical", new Piece(new File(resourceDir, "doorVertical.png"), "Door Vertical"));
-        pieces.put("Locked Door Horizontal", new Piece(new File(resourceDir, "lockedDoorHorizontal.png"), "Locked Door Horizontal", pieces.get("Door Horizontal")));
-        pieces.put("Locked Door Vertical", new Piece(new File(resourceDir, "lockedDoorVertical.png"), "Locked Door Vertical", pieces.get("Door Vertical")));
-        pieces.put("Trapped Door Horizontal", new Piece(new File(resourceDir, "trappedDoorHorizontal.png"), "Trapped Door Horizontal", pieces.get("Door Horizontal")));
-        pieces.put("Trapped Door Vertical", new Piece(new File(resourceDir, "trappedDoorVertical.png"), "Trapped Door Vertical", pieces.get("Door Vertical")));
-        pieces.put("Locked Trapped Door Horizontal", new Piece(new File(resourceDir, "lockedTrappedDoorHorizontal.png"), "Locked Trapped Door Horizontal", pieces.get("Door Horizontal")));
-        pieces.put("Locked Trapped Door Vertical", new Piece(new File(resourceDir, "lockedTrappedDoorVertical.png"), "Locked Trapped Door Vertical", pieces.get("Door Vertical")));
-        pieces.put("Secret Door Horizontal", new Piece(new File(resourceDir, "secretDoorHorizontal.png"), "Secret Door Horizontal", pieces.get("Border")));
-        pieces.put("Secret Door Vertical", new Piece(new File(resourceDir, "secretDoorVertical.png"), "Secret Door Vertical", pieces.get("Border")));
-        pieces.put("Window Horizontal", new Piece(new File(resourceDir, "windowHorizontal.png"), "Window Horizontal"));
-        pieces.put("Window Vertical", new Piece(new File(resourceDir, "windowVertical.png"), "Window Vertical"));
-        pieces.put("Down Stairs Up", new Piece(new File(resourceDir, "downStairsUp.png"), "Down Stairs Up"));
-        pieces.put("Down Stairs Down", new Piece(new File(resourceDir, "downStairsDown.png"), "Down Stairs Down"));
-        pieces.put("Down Stairs Left", new Piece(new File(resourceDir, "downStairsLeft.png"), "Down Stairs Left"));
-        pieces.put("Down Stairs Right", new Piece(new File(resourceDir, "downStairsRight.png"), "Down Stairs Right"));
-        pieces.put("Up Stairs Up", new Piece(new File(resourceDir, "upStairsUp.png"), "Up Stairs Up"));
-        pieces.put("Up Stairs Down", new Piece(new File(resourceDir, "upStairsDown.png"), "Up Stairs Down"));
-        pieces.put("Up Stairs Left", new Piece(new File(resourceDir, "upStairsLeft.png"), "Up Stairs Left"));
-        pieces.put("Up Stairs Right", new Piece(new File(resourceDir, "upStairsRight.png"), "Up Stairs Right"));
-        pieces.put("Ramp Up", new Piece(new File(resourceDir, "rampUp.png"), "Ramp Up"));
-        pieces.put("Ramp Down", new Piece(new File(resourceDir, "rampDown.png"), "Ramp Down"));
-        pieces.put("Ramp Left", new Piece(new File(resourceDir, "rampLeft.png"), "Ramp Left"));
-        pieces.put("Ramp Right", new Piece(new File(resourceDir, "rampRight.png"), "Ramp Right"));
+        return new LinkedHashMap<>() {{
+            put("Nothing", new Piece(new File(resourceDir, "nothing.png"), "Nothing"));
+            put("Space", new Piece(new File(resourceDir, "space.png"), "Space"));
+            put("Border", new Piece(new File(resourceDir, "border.png"), "Border"));
+            put("Path", new Piece(new File(resourceDir, "path.png"), "Path"));
+            put("Doorway Horizontal", new Piece(new File(resourceDir, "doorwayHorizontal.png"), "Doorway Horizontal"));
+            put("Doorway Vertical", new Piece(new File(resourceDir, "doorwayVertical.png"), "Doorway Vertical"));
+            put("Door Horizontal", new Piece(new File(resourceDir, "doorHorizontal.png"), "Door Horizontal"));
+            put("Door Vertical", new Piece(new File(resourceDir, "doorVertical.png"), "Door Vertical"));
+            put("Locked Door Horizontal", new Piece(new File(resourceDir, "lockedDoorHorizontal.png"), "Locked Door Horizontal", get("Door Horizontal")));
+            put("Locked Door Vertical", new Piece(new File(resourceDir, "lockedDoorVertical.png"), "Locked Door Vertical", get("Door Vertical")));
+            put("Trapped Door Horizontal", new Piece(new File(resourceDir, "trappedDoorHorizontal.png"), "Trapped Door Horizontal", get("Door Horizontal")));
+            put("Trapped Door Vertical", new Piece(new File(resourceDir, "trappedDoorVertical.png"), "Trapped Door Vertical", get("Door Vertical")));
+            put("Locked Trapped Door Horizontal", new Piece(new File(resourceDir, "lockedTrappedDoorHorizontal.png"), "Locked Trapped Door Horizontal", get("Door Horizontal")));
+            put("Locked Trapped Door Vertical", new Piece(new File(resourceDir, "lockedTrappedDoorVertical.png"), "Locked Trapped Door Vertical", get("Door Vertical")));
+            put("Secret Door Horizontal", new Piece(new File(resourceDir, "secretDoorHorizontal.png"), "Secret Door Horizontal", get("Border")));
+            put("Secret Door Vertical", new Piece(new File(resourceDir, "secretDoorVertical.png"), "Secret Door Vertical", get("Border")));
+            put("Window Horizontal", new Piece(new File(resourceDir, "windowHorizontal.png"), "Window Horizontal"));
+            put("Window Vertical", new Piece(new File(resourceDir, "windowVertical.png"), "Window Vertical"));
+            put("Down Stairs Up", new Piece(new File(resourceDir, "downStairsUp.png"), "Down Stairs Up"));
+            put("Down Stairs Down", new Piece(new File(resourceDir, "downStairsDown.png"), "Down Stairs Down"));
+            put("Down Stairs Left", new Piece(new File(resourceDir, "downStairsLeft.png"), "Down Stairs Left"));
+            put("Down Stairs Right", new Piece(new File(resourceDir, "downStairsRight.png"), "Down Stairs Right"));
+            put("Up Stairs Up", new Piece(new File(resourceDir, "upStairsUp.png"), "Up Stairs Up"));
+            put("Up Stairs Down", new Piece(new File(resourceDir, "upStairsDown.png"), "Up Stairs Down"));
+            put("Up Stairs Left", new Piece(new File(resourceDir, "upStairsLeft.png"), "Up Stairs Left"));
+            put("Up Stairs Right", new Piece(new File(resourceDir, "upStairsRight.png"), "Up Stairs Right"));
+            put("Ramp Up", new Piece(new File(resourceDir, "rampUp.png"), "Ramp Up"));
+            put("Ramp Down", new Piece(new File(resourceDir, "rampDown.png"), "Ramp Down"));
+            put("Ramp Left", new Piece(new File(resourceDir, "rampLeft.png"), "Ramp Left"));
+            put("Ramp Right", new Piece(new File(resourceDir, "rampRight.png"), "Ramp Right"));
+        }};
     }
     
 }
