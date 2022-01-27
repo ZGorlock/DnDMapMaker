@@ -143,7 +143,7 @@ public class DndMapMaker2D extends Scene {
     //Methods
     
     /**
-     * Calculates the components that compose the DnD Map Maker 2D.
+     * Calculates the components that compose the DnD MapMaker 2D.
      */
     @Override
     public void calculate() {
@@ -158,7 +158,7 @@ public class DndMapMaker2D extends Scene {
     }
     
     /**
-     * Sets up components for the DnD Map Maker 2D scene.
+     * Sets up components for the DnD MapMaker 2D scene.
      */
     @Override
     public void initComponents() {
@@ -288,7 +288,7 @@ public class DndMapMaker2D extends Scene {
     }
     
     /**
-     * Sets up cameras for the DnD Map Maker 2D scene.
+     * Sets up cameras for the DnD MapMaker 2D scene.
      */
     @Override
     public void setupCameras() {
@@ -298,7 +298,7 @@ public class DndMapMaker2D extends Scene {
     }
     
     /**
-     * Sets up controls for the DnD Map Maker 2D scene.
+     * Sets up controls for the DnD MapMaker 2D scene.
      */
     @Override
     public void setupControls() {
@@ -307,7 +307,7 @@ public class DndMapMaker2D extends Scene {
             public void mouseClicked(MouseEvent e) {
             }
             
-            @SuppressWarnings("ManualArrayCopy")
+            @SuppressWarnings({"ManualArrayCopy", "deprecation"})
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
@@ -428,6 +428,7 @@ public class DndMapMaker2D extends Scene {
             public void mouseDragged(MouseEvent e) {
             }
             
+            @SuppressWarnings("deprecation")
             @Override
             public void mouseMoved(MouseEvent e) {
                 boolean ctrl = (e.getModifiers() & ActionEvent.CTRL_MASK) == ActionEvent.CTRL_MASK;
@@ -602,7 +603,7 @@ public class DndMapMaker2D extends Scene {
      *
      * @param mapName The name of the map.
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "SpellCheckingInspection"})
     private void exportState(String mapName) {
         saveState(mapName + "-export");
         

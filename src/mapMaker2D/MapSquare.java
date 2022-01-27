@@ -49,6 +49,7 @@ public class MapSquare extends ImageSquare {
      *
      * @param g2 The 2D Graphics entity.
      */
+    @SuppressWarnings("SpellCheckingInspection")
     @Override
     public void render(Graphics2D g2) {
         super.render(g2);

@@ -189,7 +189,7 @@ public class BlackSpaceReducer {
     /**
      * Backs up the original image files.
      *
-     * @param images The list of images to backup.
+     * @param images The list of images to back up.
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void backupImages(List<String> images) {
@@ -255,7 +255,7 @@ public class BlackSpaceReducer {
      * @param data The image.
      * @param x    The x coordinate of the position to check.
      * @param y    The y coordinate of the position to check.
-     * @return Whether or not the position is within the image.
+     * @return Whether the position is within the image or not.
      */
     private static boolean inImage(BufferedImage data, int x, int y) {
         return (x >= 0) && x < data.getWidth() && (y >= 0) && y < data.getHeight();
