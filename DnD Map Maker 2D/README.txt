@@ -18,6 +18,8 @@
 
     To reload your saved work press the Load button and enter the same map name.
 
+    If you accidentally lose your map or close the program, look in the AUTOSAVE/ directory and press the Load button and enter the autosave in the format: '20220127/231015'.
+
     Once your map is done press the Export button and choose a map name, this will produce DM and Player Maps in the OUTPUT/ directory.
 
 5.  Print the Player Map:

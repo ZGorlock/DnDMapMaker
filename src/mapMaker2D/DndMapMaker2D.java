@@ -90,6 +90,22 @@ public class DndMapMaker2D extends Scene {
      */
     public static final double PIECE_SIZE = 0.5;
     
+    /**
+     * The directory to save maps to.
+     */
+    public static final File SAVE_DIR = new File("SAVE");
+    
+    /**
+     * The directory to autosave maps to.
+     */
+    @SuppressWarnings("SpellCheckingInspection")
+    public static final File AUTOSAVE_DIR = new File("AUTOSAVE");
+    
+    /**
+     * The directory to export maps to.
+     */
+    public static final File EXPORT_DIR = new File("OUTPUT");
+    
     
     //Static Fields
     
@@ -315,7 +331,7 @@ public class DndMapMaker2D extends Scene {
         saveButton.addActionListener(e -> {
             String name = JOptionPane.showInputDialog("Enter the name of the Map to Save:");
             if (name != null) {
-                saveState(name);
+                saveState(SAVE_DIR, name);
             }
         });
         GridBagConstraints buttonConstraints = new GridBagConstraints();
@@ -569,15 +585,19 @@ public class DndMapMaker2D extends Scene {
     /**
      * Saves the state of the map layout.
      *
+     * @param saveDir The directory to save the map in.
      * @param mapName The name of the map.
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void saveState(String mapName) {
-        File saveDirectory = new File("SAVE");
-        if (!saveDirectory.exists()) {
-            saveDirectory.mkdir();
+    private void saveState(File saveDir, String mapName) {
+        if (!saveDir.getAbsolutePath().contains(AUTOSAVE_DIR.getName())) {
+            autoSaveState();
         }
-        File save = new File(saveDirectory, mapName + ".save");
+        
+        File save = new File(saveDir, mapName + ".save");
+        if (!save.getParentFile().exists()) {
+            save.getParentFile().mkdirs();
+        }
         
         StringBuilder state = new StringBuilder();
         state.append("MAP:").append((int) MAP_DIM.getX()).append(":").append((int) MAP_DIM.getY()).append(",");
@@ -610,7 +630,7 @@ public class DndMapMaker2D extends Scene {
      */
     @SuppressWarnings("SpellCheckingInspection")
     private void autoSaveState() {
-        saveState("X-" + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
+        saveState(AUTOSAVE_DIR, new SimpleDateFormat("yyyyMMdd/HHmmss").format(new Date()));
     }
     
     /**
@@ -618,15 +638,11 @@ public class DndMapMaker2D extends Scene {
      *
      * @param mapName The name of the map.
      */
-    @SuppressWarnings({"ResultOfMethodCallIgnored"})
     private void loadState(String mapName) {
         autoSaveState();
         
-        File saveDirectory = new File("SAVE");
-        if (!saveDirectory.exists()) {
-            saveDirectory.mkdir();
-        }
-        File save = new File(saveDirectory, mapName + ".save");
+        File save = new File(SAVE_DIR, mapName + ".save");
+        save = !save.exists() ? new File(AUTOSAVE_DIR, mapName + ".save") : save;
         
         if (!save.exists()) {
             JOptionPane.showMessageDialog(null, "Error: " + mapName + " save does not exist!");
@@ -707,14 +723,14 @@ public class DndMapMaker2D extends Scene {
     private void exportState(String mapName) {
         autoSaveState();
         
-        File outputDirectory = new File("OUTPUT");
-        File exportDirectory = new File(outputDirectory, mapName);
-        if (!outputDirectory.exists()) {
-            outputDirectory.mkdir();
+        File exportDirectory = new File(EXPORT_DIR, mapName);
+        if (!EXPORT_DIR.exists()) {
+            EXPORT_DIR.mkdir();
         }
         if (!exportDirectory.exists()) {
             exportDirectory.mkdir();
         }
+        saveState(exportDirectory, mapName);
         
         final int minX = (int) mapRegion.getP1().getX();
         final int minY = (int) mapRegion.getP1().getY();
@@ -847,38 +863,39 @@ public class DndMapMaker2D extends Scene {
     private static Map<String, Piece> loadPieces() {
         final File resourceDir = new File("resource/mapMaker2D");
         
-        return new LinkedHashMap<>() {{
-            put("Nothing", new Piece(new File(resourceDir, "nothing.png"), "Nothing"));
-            put("Space", new Piece(new File(resourceDir, "space.png"), "Space"));
-            put("Border", new Piece(new File(resourceDir, "border.png"), "Border"));
-            put("Path", new Piece(new File(resourceDir, "path.png"), "Path"));
-            put("Doorway Horizontal", new Piece(new File(resourceDir, "doorwayHorizontal.png"), "Doorway Horizontal"));
-            put("Doorway Vertical", new Piece(new File(resourceDir, "doorwayVertical.png"), "Doorway Vertical"));
-            put("Door Horizontal", new Piece(new File(resourceDir, "doorHorizontal.png"), "Door Horizontal"));
-            put("Door Vertical", new Piece(new File(resourceDir, "doorVertical.png"), "Door Vertical"));
-            put("Locked Door Horizontal", new Piece(new File(resourceDir, "lockedDoorHorizontal.png"), "Locked Door Horizontal", get("Door Horizontal")));
-            put("Locked Door Vertical", new Piece(new File(resourceDir, "lockedDoorVertical.png"), "Locked Door Vertical", get("Door Vertical")));
-            put("Trapped Door Horizontal", new Piece(new File(resourceDir, "trappedDoorHorizontal.png"), "Trapped Door Horizontal", get("Door Horizontal")));
-            put("Trapped Door Vertical", new Piece(new File(resourceDir, "trappedDoorVertical.png"), "Trapped Door Vertical", get("Door Vertical")));
-            put("Locked Trapped Door Horizontal", new Piece(new File(resourceDir, "lockedTrappedDoorHorizontal.png"), "Locked Trapped Door Horizontal", get("Door Horizontal")));
-            put("Locked Trapped Door Vertical", new Piece(new File(resourceDir, "lockedTrappedDoorVertical.png"), "Locked Trapped Door Vertical", get("Door Vertical")));
-            put("Secret Door Horizontal", new Piece(new File(resourceDir, "secretDoorHorizontal.png"), "Secret Door Horizontal", get("Border")));
-            put("Secret Door Vertical", new Piece(new File(resourceDir, "secretDoorVertical.png"), "Secret Door Vertical", get("Border")));
-            put("Window Horizontal", new Piece(new File(resourceDir, "windowHorizontal.png"), "Window Horizontal"));
-            put("Window Vertical", new Piece(new File(resourceDir, "windowVertical.png"), "Window Vertical"));
-            put("Down Stairs Up", new Piece(new File(resourceDir, "downStairsUp.png"), "Down Stairs Up"));
-            put("Down Stairs Down", new Piece(new File(resourceDir, "downStairsDown.png"), "Down Stairs Down"));
-            put("Down Stairs Left", new Piece(new File(resourceDir, "downStairsLeft.png"), "Down Stairs Left"));
-            put("Down Stairs Right", new Piece(new File(resourceDir, "downStairsRight.png"), "Down Stairs Right"));
-            put("Up Stairs Up", new Piece(new File(resourceDir, "upStairsUp.png"), "Up Stairs Up"));
-            put("Up Stairs Down", new Piece(new File(resourceDir, "upStairsDown.png"), "Up Stairs Down"));
-            put("Up Stairs Left", new Piece(new File(resourceDir, "upStairsLeft.png"), "Up Stairs Left"));
-            put("Up Stairs Right", new Piece(new File(resourceDir, "upStairsRight.png"), "Up Stairs Right"));
-            put("Ramp Up", new Piece(new File(resourceDir, "rampUp.png"), "Ramp Up"));
-            put("Ramp Down", new Piece(new File(resourceDir, "rampDown.png"), "Ramp Down"));
-            put("Ramp Left", new Piece(new File(resourceDir, "rampLeft.png"), "Ramp Left"));
-            put("Ramp Right", new Piece(new File(resourceDir, "rampRight.png"), "Ramp Right"));
-        }};
+        Map<String, Piece> pieces = new LinkedHashMap<>();
+        pieces.put("Nothing", new Piece(new File(resourceDir, "nothing.png"), "Nothing"));
+        pieces.put("Space", new Piece(new File(resourceDir, "space.png"), "Space"));
+        pieces.put("Border", new Piece(new File(resourceDir, "border.png"), "Border"));
+        pieces.put("Path", new Piece(new File(resourceDir, "path.png"), "Path"));
+        pieces.put("Doorway Horizontal", new Piece(new File(resourceDir, "doorwayHorizontal.png"), "Doorway Horizontal"));
+        pieces.put("Doorway Vertical", new Piece(new File(resourceDir, "doorwayVertical.png"), "Doorway Vertical"));
+        pieces.put("Door Horizontal", new Piece(new File(resourceDir, "doorHorizontal.png"), "Door Horizontal"));
+        pieces.put("Door Vertical", new Piece(new File(resourceDir, "doorVertical.png"), "Door Vertical"));
+        pieces.put("Locked Door Horizontal", new Piece(new File(resourceDir, "lockedDoorHorizontal.png"), "Locked Door Horizontal", pieces.get("Door Horizontal")));
+        pieces.put("Locked Door Vertical", new Piece(new File(resourceDir, "lockedDoorVertical.png"), "Locked Door Vertical", pieces.get("Door Vertical")));
+        pieces.put("Trapped Door Horizontal", new Piece(new File(resourceDir, "trappedDoorHorizontal.png"), "Trapped Door Horizontal", pieces.get("Door Horizontal")));
+        pieces.put("Trapped Door Vertical", new Piece(new File(resourceDir, "trappedDoorVertical.png"), "Trapped Door Vertical", pieces.get("Door Vertical")));
+        pieces.put("Locked Trapped Door Horizontal", new Piece(new File(resourceDir, "lockedTrappedDoorHorizontal.png"), "Locked Trapped Door Horizontal", pieces.get("Door Horizontal")));
+        pieces.put("Locked Trapped Door Vertical", new Piece(new File(resourceDir, "lockedTrappedDoorVertical.png"), "Locked Trapped Door Vertical", pieces.get("Door Vertical")));
+        pieces.put("Secret Door Horizontal", new Piece(new File(resourceDir, "secretDoorHorizontal.png"), "Secret Door Horizontal", pieces.get("Border")));
+        pieces.put("Secret Door Vertical", new Piece(new File(resourceDir, "secretDoorVertical.png"), "Secret Door Vertical", pieces.get("Border")));
+        pieces.put("Window Horizontal", new Piece(new File(resourceDir, "windowHorizontal.png"), "Window Horizontal"));
+        pieces.put("Window Vertical", new Piece(new File(resourceDir, "windowVertical.png"), "Window Vertical"));
+        pieces.put("Down Stairs Up", new Piece(new File(resourceDir, "downStairsUp.png"), "Down Stairs Up"));
+        pieces.put("Down Stairs Down", new Piece(new File(resourceDir, "downStairsDown.png"), "Down Stairs Down"));
+        pieces.put("Down Stairs Left", new Piece(new File(resourceDir, "downStairsLeft.png"), "Down Stairs Left"));
+        pieces.put("Down Stairs Right", new Piece(new File(resourceDir, "downStairsRight.png"), "Down Stairs Right"));
+        pieces.put("Up Stairs Up", new Piece(new File(resourceDir, "upStairsUp.png"), "Up Stairs Up"));
+        pieces.put("Up Stairs Down", new Piece(new File(resourceDir, "upStairsDown.png"), "Up Stairs Down"));
+        pieces.put("Up Stairs Left", new Piece(new File(resourceDir, "upStairsLeft.png"), "Up Stairs Left"));
+        pieces.put("Up Stairs Right", new Piece(new File(resourceDir, "upStairsRight.png"), "Up Stairs Right"));
+        pieces.put("Ramp Up", new Piece(new File(resourceDir, "rampUp.png"), "Ramp Up"));
+        pieces.put("Ramp Down", new Piece(new File(resourceDir, "rampDown.png"), "Ramp Down"));
+        pieces.put("Ramp Left", new Piece(new File(resourceDir, "rampLeft.png"), "Ramp Left"));
+        pieces.put("Ramp Right", new Piece(new File(resourceDir, "rampRight.png"), "Ramp Right"));
+        
+        return Collections.unmodifiableMap(pieces);
     }
     
 }
