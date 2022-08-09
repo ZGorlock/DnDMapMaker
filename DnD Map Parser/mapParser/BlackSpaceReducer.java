@@ -65,7 +65,7 @@ public class BlackSpaceReducer {
     private static List<String> getImages(String filePath) {
         List<String> images = new ArrayList<>();
         
-        File path = new File(filePath.isEmpty() ? "." : filePath);
+        File path = new File(filePath.isEmpty() ? "INPUT" : filePath);
         File[] files = path.isDirectory() ? path.listFiles() : new File[] {path};
         if (files == null || files.length == 0) {
             System.out.println("No original map image found in directory!");

@@ -291,7 +291,7 @@ public class DndMapParser {
      * @return The path to the map file, or an empty string if no map file could be found.
      */
     private static String getImage() {
-        File classpath = new File(".");
+        File classpath = new File("INPUT");
         File[] files = classpath.listFiles();
         if (files == null || files.length == 0) {
             System.out.println("No original map image found in directory!");
@@ -301,7 +301,7 @@ public class DndMapParser {
         for (File f : files) {
             String type = f.getName().substring(f.getName().length() - 3);
             if (("jpg".equals(type) || "png".equals(type) || "gif".equals(type)) && f.getName().contains("(player)")) { //must get player map
-                return f.getName();
+                return "INPUT/" + f.getName();
             }
         }
         
