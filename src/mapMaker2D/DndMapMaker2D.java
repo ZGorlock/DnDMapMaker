@@ -388,7 +388,9 @@ public class DndMapMaker2D extends Scene {
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     boolean ctrl = (e.getModifiers() & ActionEvent.CTRL_MASK) == ActionEvent.CTRL_MASK;
-                    if ((selectedPiece == null) && !ctrl) {
+                    boolean alt = (e.getModifiers() & ActionEvent.ALT_MASK) == ActionEvent.ALT_MASK;
+                    Piece placedPiece = alt ? pieces.get("Nothing") : selectedPiece;
+                    if ((placedPiece == null) && !ctrl) {
                         return;
                     }
                     
@@ -420,12 +422,12 @@ public class DndMapMaker2D extends Scene {
                                         break;
                                     }
                                     
-                                    if (((x + selectedPiece.sizeX) <= mapSquares.length) &&
-                                            ((y + selectedPiece.sizeY) <= mapSquares[0].length)) {
+                                    if (((x + placedPiece.sizeX) <= mapSquares.length) &&
+                                            ((y + placedPiece.sizeY) <= mapSquares[0].length)) {
                                         
                                         boolean overlap = false;
-                                        for (int i = x; i < (x + selectedPiece.sizeX); i++) {
-                                            for (int j = y; j < (y + selectedPiece.sizeY); j++) {
+                                        for (int i = x; i < (x + placedPiece.sizeX); i++) {
+                                            for (int j = y; j < (y + placedPiece.sizeY); j++) {
                                                 if ((i == x) && (j == y)) {
                                                     continue;
                                                 }
@@ -460,13 +462,13 @@ public class DndMapMaker2D extends Scene {
                                                 }
                                             }
                                             
-                                            if (selectedPiece.name.equalsIgnoreCase("Nothing")) {
+                                            if (placedPiece.name.equalsIgnoreCase("Nothing")) {
                                                 mapSquare.setImage(null);
                                                 updateMapRegion(x, y, !mapSquare.hasLabel(), false);
                                             } else {
-                                                for (int i = 0; i < selectedPiece.sizeX; i++) {
-                                                    for (int j = 0; j < selectedPiece.sizeY; j++) {
-                                                        map[x + i][y + j] = selectedPiece.subPieces[i][j];
+                                                for (int i = 0; i < placedPiece.sizeX; i++) {
+                                                    for (int j = 0; j < placedPiece.sizeY; j++) {
+                                                        map[x + i][y + j] = placedPiece.subPieces[i][j];
                                                         updateMapRegion((x + i), (y + j), false, false);
                                                     }
                                                 }

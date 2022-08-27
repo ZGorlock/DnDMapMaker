@@ -40,6 +40,7 @@ When you run the program it will look like this:
   * You can delete a piece by replacing it with a ***Nothing*** tile
 * Right click and drag to move around the map
 * Scroll to zoom
+* Hold Alt and click to remove a piece; equivalent to placing a **Nothing** tile
 * Hold Control and click to add a label and note for that tile for the DM
 * Hold Shift and hover to visualize the boundaries of the printed Player Map pages
 
