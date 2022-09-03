@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -161,6 +162,11 @@ public class DndMapMaker2D extends Scene {
      * The page break guidelines of the map.
      */
     private final Object pageGuidelines = new Object(Color.RED);
+    
+    /**
+     * The name of the map.
+     */
+    private String mapName = "";
     
     /**
      * The selected piece.
@@ -331,12 +337,23 @@ public class DndMapMaker2D extends Scene {
         subConstraints.insets = new Insets(0, 0, 0, 0);
         sidePane.add(buttonPanel, subConstraints);
         
+        Function<String, Boolean> mapNameUpdater = (String action) -> {
+            String newMapName = JOptionPane.showInputDialog(("Enter the name of the Map to " + action + ":"), mapName);
+            if (newMapName != null) {
+                newMapName = newMapName.replaceAll("[\\\\/<>:\"|?*\\x00-\\x1F]", "").replaceAll("\\s+", " ").strip();
+                if (!newMapName.isBlank()) {
+                    mapName = newMapName;
+                    return true;
+                }
+            }
+            return false;
+        };
+        
         JButton saveButton = new JButton();
         saveButton.setText("Save");
         saveButton.addActionListener(e -> {
-            String name = JOptionPane.showInputDialog("Enter the name of the Map to Save:");
-            if (name != null) {
-                saveState(SAVE_DIR, name);
+            if (mapNameUpdater.apply("Save")) {
+                saveState();
             }
         });
         GridBagConstraints buttonConstraints = new GridBagConstraints();
@@ -346,9 +363,8 @@ public class DndMapMaker2D extends Scene {
         JButton exportButton = new JButton();
         exportButton.setText("Export");
         exportButton.addActionListener(e -> {
-            String name = JOptionPane.showInputDialog("Enter the name of the Map to Export:");
-            if (name != null) {
-                exportState(name);
+            if (mapNameUpdater.apply("Export")) {
+                exportState();
             }
         });
         buttonConstraints.gridx = 1;
@@ -357,9 +373,8 @@ public class DndMapMaker2D extends Scene {
         JButton loadButton = new JButton();
         loadButton.setText("Load");
         loadButton.addActionListener(e -> {
-            String name = JOptionPane.showInputDialog("Enter the name of the Map to Load:");
-            if (name != null) {
-                loadState(name);
+            if (mapNameUpdater.apply("Load")) {
+                loadState();
             }
         });
         buttonConstraints.gridx = 2;
@@ -592,16 +607,16 @@ public class DndMapMaker2D extends Scene {
     /**
      * Saves the state of the map layout.
      *
-     * @param saveDir The directory to save the map in.
-     * @param mapName The name of the map.
+     * @param saveDir     The directory to save the map in.
+     * @param saveMapName The name of the map.
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void saveState(File saveDir, String mapName) {
+    private void saveState(File saveDir, String saveMapName) {
         if (!saveDir.getAbsolutePath().contains(AUTOSAVE_DIR.getName())) {
             autoSaveState();
         }
         
-        File save = new File(saveDir, mapName + ".save");
+        File save = new File(saveDir, saveMapName + ".save");
         if (!save.getParentFile().exists()) {
             save.getParentFile().mkdirs();
         }
@@ -625,11 +640,19 @@ public class DndMapMaker2D extends Scene {
                 }
             }
         }
+        
         try {
             Files.write(save.toPath(), state.toString().getBytes());
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Error: " + mapName + " could not be saved!");
+            JOptionPane.showMessageDialog(null, "Error: " + saveMapName + " could not be saved!");
         }
+    }
+    
+    /**
+     * Saves the state of the map layout.
+     */
+    private void saveState() {
+        saveState(SAVE_DIR, mapName);
     }
     
     /**
@@ -643,16 +666,16 @@ public class DndMapMaker2D extends Scene {
     /**
      * Loads the state of the map layout.
      *
-     * @param mapName The name of the map.
+     * @param loadMapName The name of the map.
      */
-    private void loadState(String mapName) {
+    private void loadState(String loadMapName) {
         autoSaveState();
         
-        File save = new File(SAVE_DIR, mapName + ".save");
-        save = !save.exists() ? new File(AUTOSAVE_DIR, mapName + ".save") : save;
+        File save = new File(SAVE_DIR, loadMapName + ".save");
+        save = !save.exists() ? new File(AUTOSAVE_DIR, loadMapName + ".save") : save;
         
         if (!save.exists()) {
-            JOptionPane.showMessageDialog(null, "Error: " + mapName + " save does not exist!");
+            JOptionPane.showMessageDialog(null, "Error: " + loadMapName + " save does not exist!");
             return;
         }
         
@@ -660,7 +683,7 @@ public class DndMapMaker2D extends Scene {
         try {
             state = new String(Files.readAllBytes(save.toPath()));
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Error: " + mapName + " could not be loaded!");
+            JOptionPane.showMessageDialog(null, "Error: " + loadMapName + " could not be loaded!");
             return;
         }
         
@@ -722,22 +745,29 @@ public class DndMapMaker2D extends Scene {
     }
     
     /**
+     * Loads the state of the map layout.
+     */
+    private void loadState() {
+        loadState(mapName);
+    }
+    
+    /**
      * Exports the state of the map layout.
      *
-     * @param mapName The name of the map.
+     * @param exportMapName The name of the map.
      */
     @SuppressWarnings({"ResultOfMethodCallIgnored", "SpellCheckingInspection"})
-    private void exportState(String mapName) {
+    private void exportState(String exportMapName) {
         autoSaveState();
         
-        File exportDirectory = new File(EXPORT_DIR, mapName);
+        File exportDirectory = new File(EXPORT_DIR, exportMapName);
         if (!EXPORT_DIR.exists()) {
             EXPORT_DIR.mkdir();
         }
         if (!exportDirectory.exists()) {
             exportDirectory.mkdir();
         }
-        saveState(exportDirectory, mapName);
+        saveState(exportDirectory, exportMapName);
         
         final int minX = (int) mapRegion.getP1().getX();
         final int minY = (int) mapRegion.getP1().getY();
@@ -798,17 +828,24 @@ public class DndMapMaker2D extends Scene {
             });
         }
         
-        File dmOutput = new File(exportDirectory, mapName + " (print).png");
-        File playerOutput = new File(exportDirectory, mapName + " (player).png");
+        File dmOutput = new File(exportDirectory, exportMapName + " (print).png");
+        File playerOutput = new File(exportDirectory, exportMapName + " (player).png");
         try {
             ImageIO.write(dmMap, "png", dmOutput);
             ImageIO.write(playerMap, "png", playerOutput);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Error: " + mapName + " could not be exported!");
+            JOptionPane.showMessageDialog(null, "Error: " + exportMapName + " could not be exported!");
         }
         
         DndMapParser.main(new String[] {playerOutput.getAbsolutePath()});
         BlackSpaceReducer.main(new String[] {new File(exportDirectory, "map-Player").getAbsolutePath()});
+    }
+    
+    /**
+     * Exports the state of the map layout.
+     */
+    private void exportState() {
+        exportState(mapName);
     }
     
     /**
