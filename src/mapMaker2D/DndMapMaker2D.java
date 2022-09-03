@@ -91,6 +91,11 @@ public class DndMapMaker2D extends Scene {
     public static final double PIECE_SIZE = 0.5;
     
     /**
+     * The resources directory.
+     */
+    public static final File RESOURCES_DIR = new File("resources");
+    
+    /**
      * The directory to save maps to.
      */
     public static final File SAVE_DIR = new File("SAVE");
@@ -863,39 +868,39 @@ public class DndMapMaker2D extends Scene {
      * @return The available map pieces.
      */
     private static Map<String, Piece> loadPieces() {
-        final File resourceDir = new File("resource/mapMaker2D");
+        final File pieceDir = new File(RESOURCES_DIR, "mapMaker2D");
         
         Map<String, Piece> pieces = new LinkedHashMap<>();
-        pieces.put("Nothing", new Piece(new File(resourceDir, "nothing.png"), "Nothing"));
-        pieces.put("Space", new Piece(new File(resourceDir, "space.png"), "Space"));
-        pieces.put("Border", new Piece(new File(resourceDir, "border.png"), "Border"));
-        pieces.put("Path", new Piece(new File(resourceDir, "path.png"), "Path"));
-        pieces.put("Doorway Horizontal", new Piece(new File(resourceDir, "doorwayHorizontal.png"), "Doorway Horizontal"));
-        pieces.put("Doorway Vertical", new Piece(new File(resourceDir, "doorwayVertical.png"), "Doorway Vertical"));
-        pieces.put("Door Horizontal", new Piece(new File(resourceDir, "doorHorizontal.png"), "Door Horizontal"));
-        pieces.put("Door Vertical", new Piece(new File(resourceDir, "doorVertical.png"), "Door Vertical"));
-        pieces.put("Locked Door Horizontal", new Piece(new File(resourceDir, "lockedDoorHorizontal.png"), "Locked Door Horizontal", pieces.get("Door Horizontal")));
-        pieces.put("Locked Door Vertical", new Piece(new File(resourceDir, "lockedDoorVertical.png"), "Locked Door Vertical", pieces.get("Door Vertical")));
-        pieces.put("Trapped Door Horizontal", new Piece(new File(resourceDir, "trappedDoorHorizontal.png"), "Trapped Door Horizontal", pieces.get("Door Horizontal")));
-        pieces.put("Trapped Door Vertical", new Piece(new File(resourceDir, "trappedDoorVertical.png"), "Trapped Door Vertical", pieces.get("Door Vertical")));
-        pieces.put("Locked Trapped Door Horizontal", new Piece(new File(resourceDir, "lockedTrappedDoorHorizontal.png"), "Locked Trapped Door Horizontal", pieces.get("Door Horizontal")));
-        pieces.put("Locked Trapped Door Vertical", new Piece(new File(resourceDir, "lockedTrappedDoorVertical.png"), "Locked Trapped Door Vertical", pieces.get("Door Vertical")));
-        pieces.put("Secret Door Horizontal", new Piece(new File(resourceDir, "secretDoorHorizontal.png"), "Secret Door Horizontal", pieces.get("Border")));
-        pieces.put("Secret Door Vertical", new Piece(new File(resourceDir, "secretDoorVertical.png"), "Secret Door Vertical", pieces.get("Border")));
-        pieces.put("Window Horizontal", new Piece(new File(resourceDir, "windowHorizontal.png"), "Window Horizontal"));
-        pieces.put("Window Vertical", new Piece(new File(resourceDir, "windowVertical.png"), "Window Vertical"));
-        pieces.put("Down Stairs Up", new Piece(new File(resourceDir, "downStairsUp.png"), "Down Stairs Up"));
-        pieces.put("Down Stairs Down", new Piece(new File(resourceDir, "downStairsDown.png"), "Down Stairs Down"));
-        pieces.put("Down Stairs Left", new Piece(new File(resourceDir, "downStairsLeft.png"), "Down Stairs Left"));
-        pieces.put("Down Stairs Right", new Piece(new File(resourceDir, "downStairsRight.png"), "Down Stairs Right"));
-        pieces.put("Up Stairs Up", new Piece(new File(resourceDir, "upStairsUp.png"), "Up Stairs Up"));
-        pieces.put("Up Stairs Down", new Piece(new File(resourceDir, "upStairsDown.png"), "Up Stairs Down"));
-        pieces.put("Up Stairs Left", new Piece(new File(resourceDir, "upStairsLeft.png"), "Up Stairs Left"));
-        pieces.put("Up Stairs Right", new Piece(new File(resourceDir, "upStairsRight.png"), "Up Stairs Right"));
-        pieces.put("Ramp Up", new Piece(new File(resourceDir, "rampUp.png"), "Ramp Up"));
-        pieces.put("Ramp Down", new Piece(new File(resourceDir, "rampDown.png"), "Ramp Down"));
-        pieces.put("Ramp Left", new Piece(new File(resourceDir, "rampLeft.png"), "Ramp Left"));
-        pieces.put("Ramp Right", new Piece(new File(resourceDir, "rampRight.png"), "Ramp Right"));
+        pieces.put("Nothing", new Piece(new File(pieceDir, "nothing.png"), "Nothing"));
+        pieces.put("Space", new Piece(new File(pieceDir, "space.png"), "Space"));
+        pieces.put("Border", new Piece(new File(pieceDir, "border.png"), "Border"));
+        pieces.put("Path", new Piece(new File(pieceDir, "path.png"), "Path"));
+        pieces.put("Doorway Horizontal", new Piece(new File(pieceDir, "doorwayHorizontal.png"), "Doorway Horizontal"));
+        pieces.put("Doorway Vertical", new Piece(new File(pieceDir, "doorwayVertical.png"), "Doorway Vertical"));
+        pieces.put("Door Horizontal", new Piece(new File(pieceDir, "doorHorizontal.png"), "Door Horizontal"));
+        pieces.put("Door Vertical", new Piece(new File(pieceDir, "doorVertical.png"), "Door Vertical"));
+        pieces.put("Locked Door Horizontal", new Piece(new File(pieceDir, "lockedDoorHorizontal.png"), "Locked Door Horizontal", pieces.get("Door Horizontal")));
+        pieces.put("Locked Door Vertical", new Piece(new File(pieceDir, "lockedDoorVertical.png"), "Locked Door Vertical", pieces.get("Door Vertical")));
+        pieces.put("Trapped Door Horizontal", new Piece(new File(pieceDir, "trappedDoorHorizontal.png"), "Trapped Door Horizontal", pieces.get("Door Horizontal")));
+        pieces.put("Trapped Door Vertical", new Piece(new File(pieceDir, "trappedDoorVertical.png"), "Trapped Door Vertical", pieces.get("Door Vertical")));
+        pieces.put("Locked Trapped Door Horizontal", new Piece(new File(pieceDir, "lockedTrappedDoorHorizontal.png"), "Locked Trapped Door Horizontal", pieces.get("Door Horizontal")));
+        pieces.put("Locked Trapped Door Vertical", new Piece(new File(pieceDir, "lockedTrappedDoorVertical.png"), "Locked Trapped Door Vertical", pieces.get("Door Vertical")));
+        pieces.put("Secret Door Horizontal", new Piece(new File(pieceDir, "secretDoorHorizontal.png"), "Secret Door Horizontal", pieces.get("Border")));
+        pieces.put("Secret Door Vertical", new Piece(new File(pieceDir, "secretDoorVertical.png"), "Secret Door Vertical", pieces.get("Border")));
+        pieces.put("Window Horizontal", new Piece(new File(pieceDir, "windowHorizontal.png"), "Window Horizontal"));
+        pieces.put("Window Vertical", new Piece(new File(pieceDir, "windowVertical.png"), "Window Vertical"));
+        pieces.put("Down Stairs Up", new Piece(new File(pieceDir, "downStairsUp.png"), "Down Stairs Up"));
+        pieces.put("Down Stairs Down", new Piece(new File(pieceDir, "downStairsDown.png"), "Down Stairs Down"));
+        pieces.put("Down Stairs Left", new Piece(new File(pieceDir, "downStairsLeft.png"), "Down Stairs Left"));
+        pieces.put("Down Stairs Right", new Piece(new File(pieceDir, "downStairsRight.png"), "Down Stairs Right"));
+        pieces.put("Up Stairs Up", new Piece(new File(pieceDir, "upStairsUp.png"), "Up Stairs Up"));
+        pieces.put("Up Stairs Down", new Piece(new File(pieceDir, "upStairsDown.png"), "Up Stairs Down"));
+        pieces.put("Up Stairs Left", new Piece(new File(pieceDir, "upStairsLeft.png"), "Up Stairs Left"));
+        pieces.put("Up Stairs Right", new Piece(new File(pieceDir, "upStairsRight.png"), "Up Stairs Right"));
+        pieces.put("Ramp Up", new Piece(new File(pieceDir, "rampUp.png"), "Ramp Up"));
+        pieces.put("Ramp Down", new Piece(new File(pieceDir, "rampDown.png"), "Ramp Down"));
+        pieces.put("Ramp Left", new Piece(new File(pieceDir, "rampLeft.png"), "Ramp Left"));
+        pieces.put("Ramp Right", new Piece(new File(pieceDir, "rampRight.png"), "Ramp Right"));
         
         return Collections.unmodifiableMap(pieces);
     }
