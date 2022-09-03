@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
@@ -764,9 +765,14 @@ public class DndMapMaker2D extends Scene {
         if (!EXPORT_DIR.exists()) {
             EXPORT_DIR.mkdir();
         }
+        
         if (!exportDirectory.exists()) {
             exportDirectory.mkdir();
+        } else {
+            File exportBackupDirectory = new File(exportDirectory, "backup-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+            backupExport(exportDirectory, exportBackupDirectory);
         }
+        
         saveState(exportDirectory, exportMapName);
         
         final int minX = (int) mapRegion.getP1().getX();
@@ -846,6 +852,36 @@ public class DndMapMaker2D extends Scene {
      */
     private void exportState() {
         exportState(mapName);
+    }
+    
+    /**
+     * Backs up an existing export during reexport.
+     *
+     * @param exportDirectory       The export directory.
+     * @param exportBackupDirectory The export backup directory.
+     */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private void backupExport(File exportDirectory, File exportBackupDirectory) {
+        if (!exportBackupDirectory.exists()) {
+            exportBackupDirectory.mkdir();
+        }
+        
+        try {
+            File[] files = exportDirectory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (!file.getName().matches("backup-\\d+")) {
+                        File fileBackup = new File(exportBackupDirectory, file.getName());
+                        Files.copy(file.toPath(), fileBackup.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        if (file.isDirectory()) {
+                            backupExport(file, fileBackup);
+                        }
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
     
     /**

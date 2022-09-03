@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -198,18 +199,13 @@ public class BlackSpaceReducer {
         }
         
         try {
-            if (images.size() == 1) {
-                File image = new File(images.get(0));
-                Files.copy(image.toPath(), new File(image.getAbsolutePath().replaceAll("\\.(.*)$", " (original).$1")).toPath());
-            } else {
-                File dir = new File(images.get(0)).getParentFile();
-                File bak = new File(dir.getAbsolutePath() + " (original)");
-                bak.mkdir();
-                File[] files = dir.listFiles();
-                if (files != null) {
-                    for (File file : files) {
-                        Files.copy(file.toPath(), new File(bak, file.getName()).toPath());
-                    }
+            File dir = new File(images.get(0)).getParentFile();
+            File bak = new File(dir.getAbsolutePath() + " (original)");
+            bak.mkdir();
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    Files.copy(file.toPath(), new File(bak, file.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
             }
         } catch (IOException ex) {

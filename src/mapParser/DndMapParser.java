@@ -155,6 +155,7 @@ public class DndMapParser {
         
         System.out.println(image.getWidth() + "x" + image.getHeight() + "\n");
         
+        tiles.clear();
         for (int i = 0; i < image.getWidth(); i += TILE_SIZE * WIDTH_PER_PAGE) {
             tiles.add(new ArrayList<>());
             for (int j = 0; j < image.getHeight(); j += TILE_SIZE * HEIGHT_PER_PAGE) {
@@ -239,7 +240,7 @@ public class DndMapParser {
             }
             
             //Map Output Directory
-            String title = file.getName().substring(0, file.getName().length() - 4).replaceAll("\\s(\\d*\\s)?\\(player\\)", "");
+            String title = file.getName().substring(0, file.getName().length() - 4).replaceAll("\\s*\\(player\\)", "");
             File mapOutputDir = new File(outputDir, title);
             if (!mapOutputDir.exists()) {
                 if (!mapOutputDir.mkdir()) {
@@ -261,7 +262,7 @@ public class DndMapParser {
                 for (int j = 0; j < tiles.get(i).size(); j++) {
                     if (filterTile(tiles.get(i).get(j))) {
                         String tileFile = file.getName().substring(0, file.getName().length() - 4) + " (" + i + ", " + j + ")." + fileType;
-                        ImageIO.write(tiles.get(i).get(j), fileType, new File(playerDir, tileFile.replaceAll("\\s(\\d*\\s)?\\(player\\)", "")));
+                        ImageIO.write(tiles.get(i).get(j), fileType, new File(playerDir, tileFile.replaceAll("\\s*\\(player\\)", "")));
                         
                     }
                 }
@@ -278,7 +279,7 @@ public class DndMapParser {
                 }
                 
                 String masterFile = dmFile.getName().substring(0, dmFile.getName().length() - 4) + "." + fileType;
-                ImageIO.write(dmImage, fileType, new File(dmDir, masterFile.replaceAll("\\s(\\d*\\s)?\\(print\\)", "")));
+                ImageIO.write(dmImage, fileType, new File(dmDir, masterFile.replaceAll("\\s*\\(print\\)", "")));
             }
         } catch (IOException ex) {
             ex.printStackTrace();
